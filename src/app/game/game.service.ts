@@ -9,6 +9,7 @@ import {
 } from './game.model';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Environment } from '../../environment';
+import { get } from 'node:http';
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
@@ -184,9 +185,11 @@ export class GameService {
     const options = { params: params, headers: headers };
 
     let x = this.gameConfig.value.wordLength;
-    const completeURL = `${this.url}?hasDictionaryDef=true&minLength=${x}&maxLength=${x}&minCorpusCount=5&minDictionaryCount=1&api_key=${this.key}`;
+    // const completeURL = `${this.url}?hasDictionaryDef=true&minLength=${x}&maxLength=${x}&minCorpusCount=5&minDictionaryCount=1&api_key=${this.key}`;
+    const completeURL = `http://localhost:5059/api/Dictionary/length/${x}`;
 
     return this.http.get<any>(completeURL);
+
     // return this.http.get<any>(this.url, options);
     // .pipe(
     //   map((response) => {
