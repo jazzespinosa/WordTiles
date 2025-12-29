@@ -1,7 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { GameService } from '../game.service';
-import { map, Observable, tap } from 'rxjs';
+import { concatMap, map, Observable, Subscription, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { GameState } from '../game.model';
 
 @Component({
   selector: 'app-gameover-modal',
@@ -11,19 +12,25 @@ import { CommonModule } from '@angular/common';
   styleUrl: './gameover-modal.component.css',
 })
 export class GameoverModalComponent implements OnInit {
-  isWin!: Observable<boolean>;
-  answer!: Observable<string>;
-  answerLink = '';
+  answer = '';
+  answerLink = 'https://www.google.com/search?q=define:' + this.answer;
+
+  isGameOver!: Observable<{ isOver: boolean; isWin: boolean }>;
 
   constructor(private gameService: GameService) {}
 
   ngOnInit(): void {
-    this.isWin = this.gameService.isGameOver$.pipe(map((value) => value.isWin));
-
-    this.answer = this.gameService.answer$.pipe(
-      tap((value) => {
-        this.answerLink =
-          'https://www.google.com/search?q=' + value.toLowerCase();
+    this.isGameOver = this.gameService.gameState$.pipe(
+      map((value) => ({
+        isOver: value === GameState.win || value === GameState.lose,
+        isWin: value === GameState.win,
+      })),
+      tap(() => {
+        if (GameState.win || GameState.lose) {
+          this.answer = this.gameService.getAnswer();
+          this.answerLink =
+            'https://www.google.com/search?q=define:' + this.answer;
+        }
       })
     );
   }

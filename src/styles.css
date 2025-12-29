@@ -1,1 +1,22 @@
+.mat-drawer-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* .mat-drawer-backdrop.mat-drawer-shown {
+  opacity: 1 !important;
+}  */
+
 /* You can add global styles to this file, and also import other style files */
+
+/* .mat-drawer-container {
+  --mat-sidenav-backdrop-transition-duration: 0ms;
+} */
+
+.mat-drawer-backdrop.mat-drawer-shown {
+  opacity: 1;
+}
+
+.mat-drawer-backdrop:not(.mat-drawer-shown) {
+  opacity: 0;
+  pointer-events: none;
+}

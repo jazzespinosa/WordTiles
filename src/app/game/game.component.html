@@ -29,12 +29,12 @@
         }
       </div>
     </div>
-    @if ((isGameOver | async)!.isGameOver && !(isGameOverModalOpen | async)) {
+    @if ((isGameOver | async)!.isOver && !(isGameOverModalOpen | async)) {
     <div style="text-align: center">
       <p>
         You
         {{ (this.isGameOver | async)!.isWin ? "guessed" : "failed to guess" }}
-        the word {{ answer | async }}. Check its meaning
+        the word {{ answer }}. Check its meaning
         <a [href]="answerLink" target="_blank">here</a>.
       </p>
     </div>

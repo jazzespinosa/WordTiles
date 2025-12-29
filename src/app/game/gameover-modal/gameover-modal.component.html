@@ -6,10 +6,15 @@
         <h5 class="modal-title">GAME OVER</h5>
       </div>
       <div class="modal-body">
-        <h3>{{ (this.isWin | async) ? "YOU WIN!" : "YOU FAILED!" }}</h3>
+        <h3>
+          {{ (this.isGameOver | async)!.isWin ? "YOU WIN!" : "YOU FAILED!" }}
+        </h3>
         <p>
-          You {{ (this.isWin | async) ? "guessed" : "failed to guess" }} the
-          word {{ answer | async }}. Check its meaning
+          You
+          {{
+            (this.isGameOver | async)!.isWin ? "guessed" : "failed to guess"
+          }}
+          the word {{ answer }}. Check its meaning
           <a [href]="answerLink" target="_blank">here</a>.
         </p>
       </div>

@@ -1,27 +1,48 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
+import { BehaviorSubject, map, Observable, Subscription } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { UserModel } from '../auth/auth.model';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, CommonModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
   @Output() sideNavMenuClicked = new EventEmitter<void>();
-  @Output() headerClicked = new EventEmitter<void>();
+  @Output() titleClicked = new EventEmitter<void>();
 
-  isSideNavOpen = false;
+  userName: string | null = '';
+  subsUserName!: Subscription;
 
-  constructor() {}
+  constructor(private authService: AuthService) {}
 
-  onSideNavMenuClick() {
-    this.isSideNavOpen = !this.isSideNavOpen;
+  ngOnInit(): void {
+    this.subsUserName = this.authService.user$.subscribe(
+      (userModel) => (this.userName = userModel?.name ?? null),
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subsUserName.unsubscribe();
+  }
+
+  onSideNavMenuClick(event: Event) {
+    event.stopPropagation();
     this.sideNavMenuClicked.emit();
   }
 
-  onHeaderClick() {
-    this.headerClicked.emit();
+  onTitleClick() {
+    this.titleClicked.emit();
   }
 }

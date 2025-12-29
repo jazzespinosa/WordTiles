@@ -10,7 +10,7 @@ import {
 import Keyboard from 'simple-keyboard';
 import { GameService } from '../game.service';
 import { map, Observable, Subscription, take, tap } from 'rxjs';
-import { CellModel, LetterState } from '../game.model';
+import { CellModel, GameState, LetterState } from '../game.model';
 
 @Component({
   selector: 'app-keyboard',
@@ -26,13 +26,13 @@ export class KeyboardComponent implements OnInit, OnDestroy {
   keyboard!: Keyboard;
   isGameOver = false;
 
-  private answer = '';
   private keyDownListener!: (event: KeyboardEvent) => void;
 
   private subsGameConfig!: Subscription;
   private subsKeyboardState!: Subscription;
-  private subsAnswer!: Subscription;
   private subsIsGameOver!: Subscription;
+  private subsIsNewGameStarted!: Subscription;
+  private subsCurrentKeyboardStates!: Subscription;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object, // checks the current platform the app is running (browser, server, or mobile env)
@@ -61,17 +61,22 @@ export class KeyboardComponent implements OnInit, OnDestroy {
       }
     );
 
-    this.subsAnswer = this.gameService.answer$.subscribe((value) => {
-      if (value !== this.answer && this.answer !== '') {
-        this.keyboard.destroy();
-        this.initKeyboard();
+    this.subsIsGameOver = this.gameService.gameState$.subscribe((value) => {
+      if (value === GameState.win || value === GameState.lose) {
+        this.isGameOver = true;
+      } else {
+        this.isGameOver = false;
       }
-      this.answer = value;
     });
 
-    this.subsIsGameOver = this.gameService.isGameOver$.subscribe((value) => {
-      this.isGameOver = value.isGameOver;
-    });
+    this.subsIsNewGameStarted = this.gameService.gameState$.subscribe(
+      (gameState) => {
+        if (gameState === GameState.newGame) {
+          this.resetKeyboardStates();
+          this.gameService.setGameState(GameState.inProgress);
+        }
+      }
+    );
   }
 
   ngOnDestroy(): void {
@@ -81,26 +86,9 @@ export class KeyboardComponent implements OnInit, OnDestroy {
 
     this.subsGameConfig.unsubscribe();
     this.subsKeyboardState.unsubscribe();
-    this.subsAnswer.unsubscribe();
     this.subsIsGameOver.unsubscribe();
-
-    let tempKeyboardStates: CellModel[] = [];
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-    letters.forEach((item) => {
-      const keyTheme = this.keyboard.getButtonThemeClasses(item);
-      if (keyTheme.length > 0) {
-        tempKeyboardStates.push({
-          value: item,
-          state: <LetterState>keyTheme[0],
-        });
-      } else {
-        tempKeyboardStates.push({
-          value: item,
-          state: LetterState.default,
-        });
-      }
-    });
-    this.gameService.setKeyboardStates(tempKeyboardStates);
+    this.subsIsNewGameStarted.unsubscribe();
+    this.subsCurrentKeyboardStates.unsubscribe();
   }
 
   initKeyboard() {
@@ -119,12 +107,25 @@ export class KeyboardComponent implements OnInit, OnDestroy {
       },
     });
 
-    let currentKeyboardStates = this.gameService.getKeyboardStates();
-    if (currentKeyboardStates.length > 0) {
-      currentKeyboardStates.forEach((item) => {
-        this.updateKeyboardButtonTheme(item.value, item.state);
-      });
-    }
+    let currentKeyboardStates: CellModel[] = [];
+    this.subsCurrentKeyboardStates = this.gameService.keyboardStates$.subscribe(
+      (value) => {
+        currentKeyboardStates = value;
+        if (currentKeyboardStates.length > 0) {
+          currentKeyboardStates.forEach((item) => {
+            this.updateKeyboardButtonTheme(item.value, item.state);
+          });
+        }
+      }
+    );
+  }
+
+  resetKeyboardStates() {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    letters.forEach((item) => {
+      let keyTheme = this.keyboard.getButtonThemeClasses(item);
+      this.keyboard.removeButtonTheme(item, keyTheme[0]);
+    });
   }
 
   onKeyPress(key: string) {
@@ -136,12 +137,28 @@ export class KeyboardComponent implements OnInit, OnDestroy {
       this.value = this.value.slice(0, this.value.length - 1);
       this.gameService.onChangeTurnValue(this.value);
     } else if (
-      (key === '{enter}' || key === 'Enter') &&
-      this.value.length === this.wordLength
+      key === '{enter}' ||
+      key === 'Enter'
+      // &&  this.value.length === this.wordLength
     ) {
       // this.keyboard.addButtonTheme(key, 'correct-btn');
-      this.gameService.onEnterValue(this.value);
-      this.value = '';
+      this.gameService.onEnterValue(this.value).subscribe({
+        next: () => {
+          this.gameService.setIsGuessValid(true);
+          this.value = '';
+        },
+        error: (err) => {
+          if (err.error.startsWith('Invalid guess word')) {
+            this.gameService.setIsGuessValid(false);
+          }
+          if (
+            err.error ===
+            'Guess word length does not match the game word length.'
+          ) {
+            this.gameService.setIsGuessValid(false);
+          }
+        },
+      });
     } else if (this.isAlphabet(key) && this.value.length < this.wordLength) {
       this.value = this.value + key.toUpperCase();
       this.gameService.onChangeTurnValue(this.value);
@@ -155,15 +172,15 @@ export class KeyboardComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  updateKeyboardButtonTheme(key: string, state: string) {
+  updateKeyboardButtonTheme(key: string, state: LetterState) {
     let keyboardClasses: string[] = [];
     if (this.keyboard.getButtonThemeClasses(key).length > 0) {
       keyboardClasses = this.keyboard.getButtonThemeClasses(key);
     }
     if (
-      state === 'correct' ||
-      (state === 'present' && !keyboardClasses.includes('correct')) ||
-      (state === 'incorrect' &&
+      state === LetterState.correct ||
+      (state === LetterState.present && !keyboardClasses.includes('correct')) ||
+      (state === LetterState.incorrect &&
         !keyboardClasses.includes('correct') &&
         !keyboardClasses.includes('present'))
     ) {

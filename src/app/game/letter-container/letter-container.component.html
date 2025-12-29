@@ -1,9 +1,8 @@
-<div class="card">
+<div class="card" [ngClass]="invalidTurn ? 'shake-animation' : ''">
   <!-- <div style="position: fixed; border-radius: inherit"></div> -->
   <div
     class="body"
-    [class]="cellStateClass"
-    [ngClass]="(isGameOver | async) ? 'disabled' : ''"
+    [ngClass]="[cellStateClass, (isGameOver | async) ? 'disabled' : '']"
     [@cellAnimate]="animateState"
     (@cellAnimate.start)="onAnimateStart($event)"
   >
@@ -15,8 +14,7 @@
     <h3>{{ cellValue }}</h3>
     <!-- display space for non-played cells -->
     } @else {
-    <!-- <h3>&nbsp;</h3> -->
-    <h3>Z</h3>
+    <h3>&nbsp;</h3>
     }
   </div>
 </div>

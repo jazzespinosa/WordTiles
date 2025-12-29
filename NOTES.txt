@@ -1,0 +1,20 @@
+TODO:
+--- fix service generate word - DONE
+- connect FE to BE
+- 
+
+
+
+NEEDS IMPROVEMENT:
+- playerid for user
+--- continue game for user when logged in - DONE
+- continue game for guess (save token locally???)
+- authentication
+- better homepage/new game interface
+--- keyboard states for continue game - DONE
+
+
+
+BUG FIX:
+--- fix turn when invalid word guess - DONE
+--- update game over and word link - DONE

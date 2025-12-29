@@ -1,14 +1,10 @@
 <app-header
-  (sideNavMenuClicked)="onSideNavClicked()"
-  (headerClicked)="closeSideNav()"
+  (sideNavMenuClicked)="toggleSideNav()"
+  (titleClicked)="closeSideNav()"
+  (click)="closeSideNav()"
 ></app-header>
-<mat-sidenav-container hasBackdrop (backdropClick)="closeSideNav()">
-  <mat-sidenav
-    #sidenav
-    mode="over"
-    (keydown.escape)="closeSideNav()"
-    [opened]="isSideNavOpen"
-  >
+<mat-sidenav-container [hasBackdrop]="true" (backdropClick)="closeSideNav()">
+  <mat-sidenav #sidenav mode="over" [autoFocus]="false">
     <app-side-nav (closeSideNav)="closeSideNav()"></app-side-nav>
   </mat-sidenav>
   <mat-sidenav-content>

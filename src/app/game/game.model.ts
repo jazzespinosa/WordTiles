@@ -5,7 +5,15 @@ export enum LetterState {
   default = 'default',
 }
 
-export interface GameConfig {
+export enum GameState {
+  newGame = 'newGame',
+  inProgress = 'inProgress',
+  win = 'win',
+  lose = 'lose',
+  default = 'default',
+}
+
+export interface GameConfigModel {
   wordLength: number;
   maxTurns: number;
 }
@@ -20,7 +28,30 @@ export interface TurnModel {
   cellValue: CellModel[];
 }
 
-export interface GameOverModel {
-  isGameOver: boolean;
-  isWin: boolean;
+export interface NewGameResponseDto {
+  gameId: number;
+  wordLength: number;
+  maxTurns: number;
+}
+
+export interface GuessPostResponseDto {
+  gameId: number;
+  guess: string;
+  turn: number;
+  isGuessCorrect: boolean;
+  answer: string;
+  letterStates: number[];
+}
+
+export interface GetCurrentGameDto {
+  gameId: number;
+  currentTurn: number;
+  guessLength: number;
+  maxTurns: number;
+  guesses: Guess[];
+}
+
+export interface Guess {
+  guess: string;
+  letterStates: number[];
 }

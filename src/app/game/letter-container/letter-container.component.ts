@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { GameService } from '../game.service';
-import { map, Observable, Subscription, tap } from 'rxjs';
+import { combineLatest, map, Observable, Subscription, tap } from 'rxjs';
 import {
   AnimationEvent,
   animate,
@@ -10,6 +10,7 @@ import {
   trigger,
 } from '@angular/animations';
 import { CommonModule } from '@angular/common';
+import { GameState } from '../game.model';
 
 @Component({
   selector: 'app-letter-container',
@@ -42,10 +43,8 @@ import { CommonModule } from '@angular/common';
 export class LetterContainerComponent implements OnInit, OnDestroy {
   @Input() turnIndex!: number; //row
   @Input() letterIndex!: number; //column
-  // @Input() TurnValue!: TurnModel;
-  // turnValue!: Observable<string>;
-  cellValue!: string;
 
+  cellValue!: string;
   currentTurn = 0;
   currentTurnValue = '';
   prevTurnValue = '';
@@ -53,20 +52,25 @@ export class LetterContainerComponent implements OnInit, OnDestroy {
   cellStateClass = 'default';
   animateState = 'hasNoValue';
 
+  invalidTurn = false;
   isGameOver!: Observable<boolean>;
 
   private subsGetTurnValue!: Subscription;
-  private subsGetState!: Subscription;
+  private subsGetGameCellState!: Subscription;
+  private subsIsInvalidTurn!: Subscription;
 
   constructor(private gameService: GameService) {}
 
   ngOnInit(): void {
-    this.subsGetState = this.gameService.gameStateValues$
+    this.subsGetGameCellState = this.gameService.gameCellStateValues$
       .pipe(tap((values) => (this.currentTurn = values.length)))
       .subscribe((value) => {
         if (value[this.turnIndex]) {
-          this.cellStateClass =
-            value[this.turnIndex].cellValue[this.letterIndex].state.toString();
+          this.cellStateClass = value[this.turnIndex].cellValue[
+            this.letterIndex
+          ]
+            ? value[this.turnIndex].cellValue[this.letterIndex].state.toString()
+            : 'default';
         }
         if (value.length === 0) {
           this.cellStateClass = 'default';
@@ -80,31 +84,54 @@ export class LetterContainerComponent implements OnInit, OnDestroy {
         }
       });
 
-    this.subsGetTurnValue = this.gameService.tempTurnValue$.subscribe(
+    this.subsGetTurnValue = combineLatest([
+      this.gameService.currentTurnValue$,
+      this.gameService.getCurrentTurn(),
+    ]).subscribe(([value, currentTurn]) => {
+      this.prevTurnValue = this.currentTurnValue;
+      this.currentTurnValue = value[this.letterIndex] ?? '';
+
+      if (
+        (this.currentTurnValue && currentTurn === this.turnIndex) ||
+        currentTurn > this.turnIndex
+      ) {
+        this.animateState = 'hasValue';
+      } else {
+        this.animateState = 'hasNoValue';
+      }
+    });
+
+    this.subsIsInvalidTurn = this.gameService.isGuessValid$.subscribe(
       (value) => {
-        this.prevTurnValue = this.currentTurnValue;
-        this.currentTurnValue = value[this.letterIndex]
-          ? value[this.letterIndex]
-          : '';
-        if (
-          (this.currentTurnValue && this.currentTurn === this.turnIndex) ||
-          this.currentTurn > this.turnIndex
-        ) {
-          this.animateState = 'hasValue';
-        } else {
-          this.animateState = 'hasNoValue';
+        if (this.currentTurn === this.turnIndex) {
+          this.invalidTurn = !value;
+          if (!value) {
+            this.triggerShake();
+          }
         }
       }
     );
 
-    this.isGameOver = this.gameService.isGameOver$.pipe(
-      map((value) => value.isGameOver)
+    this.isGameOver = this.gameService.gameState$.pipe(
+      map(
+        (value) =>
+          value === GameState.win ||
+          value === GameState.lose ||
+          value === GameState.default
+      )
     );
   }
 
   ngOnDestroy(): void {
     this.subsGetTurnValue.unsubscribe();
-    this.subsGetState.unsubscribe();
+    this.subsGetGameCellState.unsubscribe();
+    this.subsIsInvalidTurn.unsubscribe();
+  }
+
+  triggerShake() {
+    setTimeout(() => {
+      this.gameService.setIsGuessValid(true);
+    }, 1000);
   }
 
   onAnimateStart(event: AnimationEvent) {

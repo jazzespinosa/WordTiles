@@ -1,20 +1,24 @@
-<nav class="navbar navbar-dark header">
+<nav class="navbar navbar-dark header position-relative">
   <div class="container-fluid">
-    <button type="button" class="navbar-toggler" (click)="onSideNavMenuClick()">
+    <button
+      type="button"
+      class="navbar-toggler"
+      (click)="onSideNavMenuClick($event)"
+    >
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="justify-content-center">
-      <a
-        class="navbar-brand mb-0 h1"
-        routerLink="/home"
-        (click)="onHeaderClick()"
-        >WORDLED</a
-      >
+    <div class="position-absolute start-50 translate-middle-x">
+      <a class="navbar-brand mb-0 h1" routerLink="/home">WORD TILES</a>
     </div>
-
-    <div class="nav navbar-nav navbar-right">
-      <a routerLink="/auth">Login</a>
-    </div>
+    <a routerLink="/auth" class="d-flex align-items-center">
+      <!-- <img
+          src="https://cdn-icons-png.freepik.com/512/10100/10100162.png"
+          alt=""
+          class="circle-image"
+        /> -->
+      <i class="bi bi-person-circle"></i>
+      {{ userName ? userName : "Login" }}</a
+    >
   </div>
 </nav>

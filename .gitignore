@@ -41,5 +41,10 @@ testem.log
 .DS_Store
 Thumbs.db
 
+/environment
 environment.ts
 .fake
+# Firebase
+.firebase
+*-debug.log
+.runtimeconfig.json
