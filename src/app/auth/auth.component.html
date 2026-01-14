@@ -1,10 +1,19 @@
 <div class="text-center">
+  @if (error.hasError) {
+    <app-alert
+      [type]="error.type"
+      [title]="error.title"
+      [message]="error.message"
+      (cancel)="OnCancel()"
+    ></app-alert>
+  }
+  @if (isLoading | async) {
+    <app-loading-spinner></app-loading-spinner>
+  }
   <img
-    class="mt-4 mb-4"
-    src="https://cdn-icons-png.freepik.com/512/10050/10050494.png"
-    alt=""
-    width="120rem"
-    height="120rem"
+    class="logo"
+    src="https://cdn-icons-png.freepik.com/512/11974/11974621.png"
+    alt="WordTiles"
   />
   <div class="form-container">
     <div class="slider" [class.move]="toggleIsSignUp">
@@ -25,17 +34,20 @@
               <label for="loginInputEmail">Email address</label>
               <div class="invalid-feedback d-block text-start">
                 @if (loginInputEmail.invalid && isLoginSubmit) {
-                <div>
-                  @if (loginInputEmail.errors?.['required']) {
-                  <div>Email is required.</div>
-                  } @if (loginInputEmail.errors?.['email'] ||
-                  loginInputEmail.errors?.['minlength'] ||
-                  loginInputEmail.errors?.['maxlength']) {
-                  <div>Email is not valid.</div>
-                  }
-                </div>
+                  <div>
+                    @if (loginInputEmail.errors?.["required"]) {
+                      <div>Email is required.</div>
+                    }
+                    @if (
+                      loginInputEmail.errors?.["email"] ||
+                      loginInputEmail.errors?.["minlength"] ||
+                      loginInputEmail.errors?.["maxlength"]
+                    ) {
+                      <div>Email is not valid.</div>
+                    }
+                  </div>
                 } @else {
-                <div>&nbsp;</div>
+                  <div>&nbsp;</div>
                 }
               </div>
             </div>
@@ -46,25 +58,40 @@
                 class="form-control"
                 formControlName="loginInputPassword"
                 placeholder="Password"
+                [type]="isLoginPasswordVisible ? 'text' : 'password'"
                 required
               />
+              <i
+                [ngClass]="
+                  isLoginPasswordVisible
+                    ? 'bi bi-eye-fill '
+                    : 'bi bi-eye-slash-fill'
+                "
+                class="login-eye"
+                (click)="toggleLoginPasswordVisibility()"
+              ></i>
               <label for="loginInputPassword">Password</label>
               <div class="invalid-feedback d-block text-start">
                 @if (loginInputPassword.invalid && isLoginSubmit) {
-                <div>
-                  @if (loginInputPassword.errors?.['required']) {
-                  <div>Password is required.</div>
-                  } @if ( loginInputPassword.errors?.['minlength'] ||
-                  loginInputPassword.errors?.['maxlength']) {
-                  <div>Password is not valid.</div>
-                  }
-                </div>
-                }@else {
-                <div>&nbsp;</div>
+                  <div>
+                    @if (loginInputPassword.errors?.["required"]) {
+                      <div>Password is required.</div>
+                    }
+                    @if (
+                      loginInputPassword.errors?.["minlength"] ||
+                      loginInputPassword.errors?.["maxlength"]
+                    ) {
+                      <div>Password is not valid.</div>
+                    }
+                  </div>
+                } @else {
+                  <div>&nbsp;</div>
                 }
               </div>
             </div>
-            <div class="invalid-feedback d-block">{{ loginErrorMessage }}</div>
+            <div class="invalid-feedback d-block">
+              {{ loginButtonErrorMessage }}
+            </div>
             <button class="w-100 btn btn-lg btn-primary" type="submit">
               Login
             </button>
@@ -76,8 +103,21 @@
             <a class="link-primary" (click)="toggleButton()">Sign up</a>
           </p>
         </div>
+        <div class="divider"><span>or</span></div>
+        <button
+          class="w-100 btn btn-lg btn-primary mb-2"
+          (click)="onLoginAsGuest()"
+        >
+          Login as Guest
+        </button>
+        <button
+          class="w-100 btn btn-lg btn-primary mb-2"
+          (click)="onLoginWithGoogle()"
+        >
+          Login with Google
+        </button>
       </div>
-      <div class="form-signin form-block">
+      <div class="form-signup form-block">
         <h1 class="h1 mb-3 fw-bold">SIGN UP</h1>
         <form [formGroup]="signUpForm" (ngSubmit)="onSignUp()">
           <fieldset [disabled]="!toggleIsSignUp">
@@ -94,16 +134,19 @@
               <label for="signUpInputName">Name</label>
               <div class="invalid-feedback d-block text-start">
                 @if (signUpInputName.invalid && isSignUpSubmit) {
-                <div>
-                  @if (signUpInputName.errors?.['required']) {
-                  <div>Name is required.</div>
-                  } @if ( signUpInputName.errors?.['minlength'] ||
-                  signUpInputName.errors?.['maxlength']) {
-                  <div>Name is not valid.</div>
-                  }
-                </div>
-                }@else {
-                <div>&nbsp;</div>
+                  <div>
+                    @if (signUpInputName.errors?.["required"]) {
+                      <div>Name is required.</div>
+                    }
+                    @if (
+                      signUpInputName.errors?.["minlength"] ||
+                      signUpInputName.errors?.["maxlength"]
+                    ) {
+                      <div>Name is not valid.</div>
+                    }
+                  </div>
+                } @else {
+                  <div>&nbsp;</div>
                 }
               </div>
             </div>
@@ -120,17 +163,20 @@
               <label for="signUpInputEmail">Email address</label>
               <div class="invalid-feedback d-block text-start">
                 @if (signUpInputEmail.invalid && isSignUpSubmit) {
-                <div>
-                  @if (signUpInputEmail.errors?.['required']) {
-                  <div>Email is required.</div>
-                  } @if (signUpInputEmail.errors?.['email'] ||
-                  signUpInputEmail.errors?.['minlength'] ||
-                  signUpInputEmail.errors?.['maxlength']) {
-                  <div>Email is not valid.</div>
-                  }
-                </div>
-                }@else {
-                <div>&nbsp;</div>
+                  <div>
+                    @if (signUpInputEmail.errors?.["required"]) {
+                      <div>Email is required.</div>
+                    }
+                    @if (
+                      signUpInputEmail.errors?.["email"] ||
+                      signUpInputEmail.errors?.["minlength"] ||
+                      signUpInputEmail.errors?.["maxlength"]
+                    ) {
+                      <div>Email is not valid.</div>
+                    }
+                  </div>
+                } @else {
+                  <div>&nbsp;</div>
                 }
               </div>
             </div>
@@ -140,26 +186,40 @@
                 id="signUpInputPassword"
                 class="form-control"
                 formControlName="signUpInputPassword"
+                [type]="isSignUpPasswordVisible ? 'text' : 'password'"
                 placeholder="Password"
                 required
-              />
+              /><i
+                [ngClass]="
+                  isSignUpPasswordVisible
+                    ? 'bi bi-eye-fill '
+                    : 'bi bi-eye-slash-fill'
+                "
+                class="signup-eye"
+                (click)="toggleSignUpPasswordVisibility()"
+              ></i>
               <label for="signUpInputPassword">Password</label>
               <div class="invalid-feedback d-block text-start">
                 @if (signUpInputPassword.invalid && isSignUpSubmit) {
-                <div>
-                  @if (signUpInputPassword.errors?.['required']) {
-                  <div>Password is required.</div>
-                  } @if ( signUpInputPassword.errors?.['minlength'] ||
-                  signUpInputPassword.errors?.['maxlength']) {
-                  <div>Password is not valid.</div>
-                  }
-                </div>
-                }@else {
-                <div>&nbsp;</div>
+                  <div>
+                    @if (signUpInputPassword.errors?.["required"]) {
+                      <div>Password is required.</div>
+                    }
+                    @if (
+                      signUpInputPassword.errors?.["minlength"] ||
+                      signUpInputPassword.errors?.["maxlength"]
+                    ) {
+                      <div>Password is not valid.</div>
+                    }
+                  </div>
+                } @else {
+                  <div>&nbsp;</div>
                 }
               </div>
             </div>
-            <div class="invalid-feedback d-block">{{ signUpErrorMessage }}</div>
+            <div class="invalid-feedback d-block">
+              {{ signUpButtonErrorMessage }}
+            </div>
             <button class="w-100 btn btn-lg btn-success" type="submit">
               Sign Up
             </button>

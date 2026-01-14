@@ -1,20 +1,15 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit } from '@angular/core';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { map, Observable, tap } from 'rxjs';
-
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KeyboardComponent } from './keyboard/keyboard.component';
 import { GameService } from './game.service';
-import {
-  CellModel,
-  GameState,
-  GetCurrentGameDto,
-  TurnModel,
-  type GameConfigModel,
-} from './game.model';
+import { GameState, type GameConfigModel } from './game.model';
 import { LetterContainerComponent } from './letter-container/letter-container.component';
 import { ModalComponent } from './modal/modal.component';
 import { CommonModule } from '@angular/common';
 import { GameoverModalComponent } from './gameover-modal/gameover-modal.component';
+import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-game',
@@ -26,79 +21,67 @@ import { GameoverModalComponent } from './gameover-modal/gameover-modal.componen
     ModalComponent,
     GameoverModalComponent,
     CommonModule,
+    LoadingSpinnerComponent,
   ],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css',
 })
 export class GameComponent implements OnInit, OnDestroy {
   isModalOpen!: Observable<boolean>;
-  gameConfig!: Observable<GameConfigModel>;
+  gameConfig: GameConfigModel = {
+    wordLength: 5,
+    maxTurns: 6,
+  };
   isGameOverModalOpen!: Observable<boolean>;
   isGameOver!: Observable<{ isOver: boolean; isWin: boolean }>;
   answer = '';
   answerLink = 'https://www.google.com/search?q=define:' + this.answer;
+  isLoading = false;
 
-  // currentGame!: Observable<GetCurrentGameModel | null>;
-
-  constructor(private gameService: GameService) {}
+  constructor(
+    private gameService: GameService,
+    private destroyRef: DestroyRef,
+  ) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
+
+    this.gameService.resetGame();
     this.gameService.setIsGameModalOpen(true);
-    this.gameService.getGame().subscribe({
-      next: (game) => {
-        if (game) {
-          this.gameService.setCurrentGame(game);
-          this.gameService.setGameState(GameState.inProgress);
-          this.gameService.setGameConfig({
-            wordLength: game.guessLength,
-            maxTurns: game.maxTurns,
-          });
-
-          let guessWord = '';
-          let letterStates: number[] = [];
-          let guessesAndStates: TurnModel[] = [];
-          game.guesses.forEach((guess) => {
-            guessWord = guess.guess;
-            letterStates = guess.letterStates;
-            let cellModels: CellModel[] = [];
-            for (let index = 0; index < guessWord.length; index++) {
-              let cellModel: CellModel = {
-                value: guessWord[index],
-                state: this.gameService.getCellStateFromNumber(
-                  letterStates[index],
-                ),
-              };
-              cellModels.push(cellModel);
-            }
-
-            guessesAndStates.push({
-              turnValue: guessWord,
-              cellValue: cellModels,
-            });
-          });
-          this.gameService.setGameCellStateValues(guessesAndStates);
-          this.gameService.updateKeyboardStatesOnLoad(guessesAndStates);
-        }
-      },
-      error: (err) => {
-        if (err.error === 'Game not found.') {
-          this.gameService.setIsGameModalOpen(true);
-        }
-      },
-    });
-
-    // this.currentGame = this.gameService.currentGame$;
-    this.gameConfig = this.gameService.gameConfig$;
     this.isModalOpen = this.gameService.isGameModalOpen$;
     this.isGameOverModalOpen = this.gameService.isGameOverModalOpen$;
-    this.isGameOver = this.gameService.gameState$.pipe(
+
+    this.gameService.globalGameStatus$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.gameConfig = {
+          wordLength: value.wordLength,
+          maxTurns: value.maxTurns,
+        };
+      });
+
+    this.gameService
+      .getGame()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
+        },
+      });
+
+    this.isGameOver = this.gameService.globalGameStatus$.pipe(
       map((value) => ({
-        isOver: value === GameState.win || value === GameState.lose,
-        isWin: value === GameState.win,
+        isOver:
+          value.gameState === GameState.win ||
+          value.gameState === GameState.lose,
+        isWin: value.gameState === GameState.win,
       })),
       tap(() => {
         if (GameState.win || GameState.lose) {
-          this.answer = this.gameService.getAnswer();
+          this.answer = this.gameService.getGuessResponse()?.answer ?? '';
           this.answerLink =
             'https://www.google.com/search?q=define:' + this.answer;
         }
@@ -107,6 +90,10 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.gameService.clearTempTurn();
+    this.gameService.setTempTurnValue('');
+  }
+
+  onPlayAgainModal() {
+    this.gameService.setIsGameModalOpen(true);
   }
 }

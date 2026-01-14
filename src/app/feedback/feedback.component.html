@@ -1,0 +1,162 @@
+<div class="feedback-container">
+  <!-- Hero Section -->
+  <header class="hero">
+    <h1>Feedback</h1>
+    <p class="subtitle">Help us improve Word Tiles</p>
+  </header>
+
+  <!-- Success State -->
+  @if (isSubmitted) {
+    <div class="success-card">
+      <span class="material-symbols-rounded success-icon">check_circle</span>
+      <h2>Thank You!</h2>
+      <p>Your feedback has been submitted successfully.</p>
+      <div class="success-actions">
+        <button class="btn-primary" (click)="resetForm()">
+          Submit Another
+        </button>
+        <button class="btn-secondary" (click)="goHome()">Back to Home</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Feedback Form -->
+    <section class="content-section">
+      <!-- Category Selection -->
+      <div class="content-card">
+        <h3>
+          <span class="material-symbols-rounded icon">category</span>
+          What type of feedback?
+        </h3>
+        <div class="category-grid">
+          @for (category of categories; track category.value) {
+            <button
+              class="category-btn"
+              [class.selected]="selectedCategory === category.value"
+              [style.--category-color]="category.color"
+              (click)="selectCategory(category.value)"
+            >
+              <span class="material-symbols-rounded">{{ category.icon }}</span>
+              <span class="category-label">{{ category.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Subject & Description -->
+      <div class="content-card">
+        <h3>
+          <span class="material-symbols-rounded icon">edit_note</span>
+          Details
+        </h3>
+
+        <div class="form-group">
+          <label for="subject">Subject</label>
+          <input
+            type="text"
+            id="subject"
+            class="form-input"
+            [(ngModel)]="subject"
+            placeholder="Brief title for your feedback"
+            maxlength="100"
+          />
+          <span class="char-count">{{ subject.length }}/100</span>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            class="form-input form-textarea"
+            [(ngModel)]="description"
+            placeholder="Please provide as much detail as possible..."
+            rows="5"
+            maxlength="2000"
+          ></textarea>
+          <span class="char-count">{{ description.length }}/2000</span>
+        </div>
+      </div>
+
+      <!-- Privacy Options -->
+      <div class="content-card">
+        <h3>
+          <span class="material-symbols-rounded icon">visibility</span>
+          Privacy Options
+        </h3>
+
+        <div class="toggle-option">
+          <div class="toggle-info">
+            <span class="toggle-label">Submit Anonymously</span>
+            <span class="toggle-description"
+              >Your identity will not be attached to this feedback</span
+            >
+          </div>
+          <button
+            class="toggle-switch"
+            [class.active]="isAnonymous"
+            (click)="toggleAnonymous()"
+            role="switch"
+            [attr.aria-checked]="isAnonymous"
+          >
+            <span class="toggle-slider"></span>
+          </button>
+        </div>
+
+        @if (!isAnonymous) {
+          <div class="toggle-option">
+            <div class="toggle-info">
+              <span class="toggle-label">Allow Contact</span>
+              <span class="toggle-description"
+                >We may reach out for more details</span
+              >
+            </div>
+            <button
+              class="toggle-switch"
+              [class.active]="allowContact"
+              (click)="allowContact = !allowContact"
+              role="switch"
+              [attr.aria-checked]="allowContact"
+            >
+              <span class="toggle-slider"></span>
+            </button>
+          </div>
+        }
+
+        @if (isAnonymous) {
+          <div class="anonymous-notice">
+            <span class="material-symbols-rounded">info</span>
+            <span
+              >You're signed in as
+              <strong>{{ (user$ | async)?.name || "User" }}</strong
+              >, but this feedback will be submitted anonymously.</span
+            >
+          </div>
+        }
+      </div>
+
+      <!-- Error Message -->
+      @if (errorMessage) {
+        <div class="error-card">
+          <span class="material-symbols-rounded">error</span>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <!-- Submit Button -->
+      <div class="action-area">
+        <button
+          class="submit-btn"
+          [disabled]="!isFormValid || isLoading"
+          (click)="submitFeedback()"
+        >
+          @if (isLoading) {
+            <span class="loading-spinner"></span>
+            Submitting...
+          } @else {
+            <span class="material-symbols-rounded">send</span>
+            Submit Feedback
+          }
+        </button>
+      </div>
+    </section>
+  }
+</div>

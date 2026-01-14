@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -7,11 +7,22 @@ import {
 } from '@angular/forms';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
+import { LoginError } from './auth.model';
+import { Observable, Subscription, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AlertComponent } from '../shared/alert/alert.component';
+import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    AlertComponent,
+    LoadingSpinnerComponent,
+    CommonModule,
+  ],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',
 })
@@ -21,17 +32,45 @@ export class AuthComponent implements OnInit {
   toggleIsSignUp = false; // toggle
   isLoginSubmit = false;
   isSignUpSubmit = false;
+  isLoading!: Observable<boolean>;
+  isLoginPasswordVisible = false;
+  isSignUpPasswordVisible = false;
 
-  loginErrorMessage: string | null = null;
-  signUpErrorMessage: string | null = null;
+  error = {
+    hasError: false,
+    type: 'error' as 'error' | 'warning',
+    title: 'Error',
+    message: '',
+  };
+
+  loginButtonErrorMessage: string | null = null;
+  signUpButtonErrorMessage: string | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private router: Router,
+    private destroyRef: DestroyRef,
   ) {}
 
   ngOnInit(): void {
+    this.authService
+      .checkGoogleLogin()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (value) => {
+          if (value) {
+            this.router.navigate(['/home']);
+            this.loginButtonErrorMessage = null;
+          }
+        },
+        error: (err: any) => {
+          this.loginButtonErrorMessage = err.message;
+        },
+      });
+
+    this.isLoading = this.authService.isLoading$;
+
     this.loginForm = this.formBuilder.group({
       loginInputEmail: [
         '',
@@ -81,88 +120,128 @@ export class AuthComponent implements OnInit {
     });
   }
 
-  onLogIn() {
+  onLogIn(): void {
+    this.authService.setIsLoading(true);
     this.isLoginSubmit = true;
     this.isSignUpSubmit = false;
-    this.loginErrorMessage = null;
+    this.loginButtonErrorMessage = null;
 
     if (this.loginForm.invalid) {
-      alert('Form is invalid! Please check the fields.');
+      this.error = {
+        hasError: true,
+        type: 'error',
+        title: 'Invalid Form',
+        message: 'Form is invalid! Please check the fields.',
+      };
+
+      this.authService.setIsLoading(false);
       return;
     }
 
-    const email = this.loginForm.value.loginInputEmail;
-    const password = this.loginForm.value.loginInputPassword;
+    const loginEmail = this.loginForm.value.loginInputEmail;
+    const loginPassword = this.loginForm.value.loginInputPassword;
 
     this.authService
-      .onLogIn(email, password)
-      .then((userCredential) => {
-        this.loginErrorMessage = null;
-        this.authService
-          .validateLogin(userCredential)
-          .then((userCredentialValidated) => {
-            this.authService.setUser({
-              email: userCredentialValidated.email,
-              name: userCredentialValidated.name,
-            });
-            this.router.navigate(['/play']);
-          });
-      })
-      .catch((err) => {
-        if (err.code === 'auth/invalid-credential') {
-          this.loginErrorMessage = 'Invalid email or password.';
-        } else {
-          this.loginErrorMessage = 'Login failed. Try again.';
-        }
+      .login(loginEmail, loginPassword)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/home']);
+          this.loginButtonErrorMessage = null;
+        },
+        error: (err: LoginError) => {
+          this.loginButtonErrorMessage = err.message;
+          this.authService.setIsLoading(false);
+        },
+        complete: () => {
+          this.authService.setIsLoading(false);
+        },
       });
   }
 
   onSignUp() {
+    this.authService.setIsLoading(true);
+
     this.isLoginSubmit = false;
     this.isSignUpSubmit = true;
-    this.signUpErrorMessage = null;
+    this.signUpButtonErrorMessage = null;
 
     if (this.signUpForm.invalid) {
-      alert('Form is invalid! Please check the fields.');
+      this.error = {
+        hasError: true,
+        type: 'error',
+        title: 'Invalid Form',
+        message: 'Form is invalid! Please check the fields.',
+      };
+
+      this.authService.setIsLoading(false);
       return;
     }
 
-    const name = this.signUpForm.value.signUpInputName;
     const email = this.signUpForm.value.signUpInputEmail;
     const password = this.signUpForm.value.signUpInputPassword;
+    const name = this.signUpForm.value.signUpInputName;
 
     this.authService
-      .onSignUp(email, password)
-      .then((userCredential) => {
-        this.signUpErrorMessage = null;
-        this.authService.saveUser(userCredential, name);
-        console.log(userCredential);
-      })
-      .catch((err) => {
-        if (err.code === 'auth/email-already-in-use') {
-          this.authService
-            .onLogIn(email, password)
-            .then((userCredentialAfterError) => {
-              this.authService
-                .checkIfUserExistInDatabase(userCredentialAfterError)
-                .then((exist) => {
-                  if (exist) {
-                    this.signUpErrorMessage =
-                      'Email address is already in use.';
-                  } else {
-                    this.authService.saveUser(userCredentialAfterError, name);
-                  }
-                })
-                .catch(() => {
-                  this.signUpErrorMessage = 'Signup failed. Try again.';
-                });
-            })
-            .catch(() => {
-              this.signUpErrorMessage = 'Email address is already in use.';
-            });
-        } else {
-          this.signUpErrorMessage = 'Signup failed. Try again.';
-        }
+      .signup(email, password, name)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/home']);
+          this.signUpButtonErrorMessage = null;
+        },
+        error: (err: LoginError) => {
+          this.signUpButtonErrorMessage = err.message;
+          this.authService.setIsLoading(false);
+        },
+        complete: () => {
+          this.authService.setIsLoading(false);
+        },
+      });
+  }
+
+  onLoginWithGoogle() {
+    this.authService.setIsLoading(true);
+    // this.isLoginSubmit = false;
+    // this.isSignUpSubmit = false;
+    // this.loginButtonErrorMessage = null;
+
+    this.authService
+      .loginWithGoogle()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: (err: any) => {
+          this.loginButtonErrorMessage = err.message;
+          this.authService.setIsLoading(false);
+        },
+        complete: () => {
+          // This might not strictly complete before the redirect happens, but good practice
+          // Actually, redirect might happen before this or interrupt it.
+        },
+      });
+  }
+
+  onLoginAsGuest() {
+    this.authService.setIsLoading(true);
+    // this.isLoginSubmit = false;
+    // this.isSignUpSubmit = false;
+    this.loginButtonErrorMessage = null;
+
+    this.authService
+      .loginAsGuest()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/home']);
+          this.loginButtonErrorMessage = null;
+        },
+        error: (err: LoginError) => {
+          this.loginButtonErrorMessage = err.message;
+          this.authService.setIsLoading(false);
+        },
+        complete: () => {
+          this.authService.setIsLoading(false);
+        },
       });
   }
 
@@ -171,11 +250,29 @@ export class AuthComponent implements OnInit {
     this.reset();
   }
 
+  toggleLoginPasswordVisibility(): void {
+    this.isLoginPasswordVisible = !this.isLoginPasswordVisible;
+  }
+
+  toggleSignUpPasswordVisibility(): void {
+    this.isSignUpPasswordVisible = !this.isSignUpPasswordVisible;
+  }
+
+  OnCancel() {
+    this.error = {
+      hasError: false,
+      type: 'error',
+      title: 'Error',
+      message: '',
+    };
+  }
+
   private reset() {
+    this.authService.setIsLoading(false);
     this.isLoginSubmit = false;
     this.isSignUpSubmit = false;
-    this.loginErrorMessage = null;
-    this.signUpErrorMessage = null;
+    this.loginButtonErrorMessage = null;
+    this.signUpButtonErrorMessage = null;
     this.loginForm.reset();
     this.signUpForm.reset();
   }

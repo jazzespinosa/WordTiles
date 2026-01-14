@@ -11,29 +11,39 @@ body {
   background-color: #f5f5f5;
 }
 
+.logo {
+  height: 3.5rem;
+  width: 3.5rem;
+  margin: 1rem 0rem;
+}
+
 a {
   cursor: pointer;
 }
 
-.form-signin {
+.form-signin,
+.form-signup {
   width: 100%;
   max-width: 20rem;
   padding: 1rem;
   margin: auto;
 }
 
-.form-signin .checkbox {
+.form-signin .checkbox,
+.form-signup .checkbox {
   font-weight: 400;
 }
 
-.form-signin .form-control {
+.form-signin .form-control,
+.form-signup .form-control {
   position: relative;
   box-sizing: border-box;
   height: auto;
   font-size: 1rem;
 }
 
-.form-signin .form-control:focus {
+.form-signin .form-control:focus,
+.form-signup .form-control:focus {
   z-index: 2;
 }
 
@@ -46,14 +56,61 @@ a {
 
 .form-container {
   width: fit-content;
-  max-width: 25rem;
-  /* padding-inline: 4rem; */
+  max-width: 90%;
   background: #fff;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 16px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   position: relative;
   margin-inline: auto;
+  margin-bottom: 3rem;
+}
+
+.login-eye {
+  z-index: 100;
+  position: absolute;
+  top: 27%;
+  right: 8%;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+.login-eye:hover {
+  color: #000;
+}
+
+.signup-eye {
+  z-index: 100;
+  position: absolute;
+  top: 27%;
+  right: 8%;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+.signup-eye:hover {
+  color: #000;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  color: #bdbcbc;
+  font-size: 0.8rem;
+  margin: 25px 0;
+  height: 1px;
+  background: #bdbcbc;
+
+  span {
+    position: relative;
+    display: inline-block;
+    top: -0.8rem;
+    padding: 0 0.75rem;
+    background: #fff;
+    color: #333333;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+  }
 }
 
 .slider {

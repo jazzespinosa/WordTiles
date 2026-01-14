@@ -1,8 +1,8 @@
-export interface SignUpRequestDto {
-  name: string;
-  email: string;
-  password: string;
-}
+// export interface SignUpRequestDto {
+//   name: string;
+//   email: string;
+//   password: string;
+// }
 
 export interface SignUpResponseDto {
   name: string;
@@ -17,4 +17,9 @@ export interface LoginResponseDto {
 export interface UserModel {
   email: string;
   name: string;
+  isAnonymous: boolean;
+}
+
+export interface LoginError {
+  message: string;
 }

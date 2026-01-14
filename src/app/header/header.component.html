@@ -1,24 +1,58 @@
 <nav class="navbar navbar-dark header position-relative">
   <div class="container-fluid">
-    <button
-      type="button"
-      class="navbar-toggler"
-      (click)="onSideNavMenuClick($event)"
-    >
+    <button type="button" class="navbar-toggler" (click)="onSideNavMenuClick()">
       <span class="navbar-toggler-icon"></span>
     </button>
-
-    <div class="position-absolute start-50 translate-middle-x">
-      <a class="navbar-brand mb-0 h1" routerLink="/home">WORD TILES</a>
+    @if (isViewPortSmall) {
+      <img
+        class="logo"
+        src="https://cdn-icons-png.freepik.com/512/11974/11974621.png"
+        alt="WordTiles"
+        routerLink="/home"
+        (click)="onTitleClick()"
+      />
+    } @else {
+      <div class="position-absolute start-50 translate-middle-x">
+        <a
+          class="navbar-brand mb-0 h1"
+          routerLink="/home"
+          (click)="onTitleClick()"
+          >WORD TILES</a
+        >
+      </div>
+    }
+    <div class="login-button">
+      <a
+        class="d-flex align-items-center nav-link dropdown-toggle"
+        role="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <span class="material-symbols-rounded"> account_circle </span>
+        {{ (userData ?? null) ? userData?.name : "Guest" }}
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li class="dropdown-item text-center">
+          @if (userData == null) {
+            <a><div (click)="onLogin()">Login</div></a>
+          } @else {
+            <a
+              ><div (click)="onLogout($event)">
+                @if (isLoading) {
+                  Logging out...
+                  <span
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                } @else {
+                  Logout
+                }
+              </div></a
+            >
+          }
+        </li>
+      </ul>
     </div>
-    <a routerLink="/auth" class="d-flex align-items-center">
-      <!-- <img
-          src="https://cdn-icons-png.freepik.com/512/10100/10100162.png"
-          alt=""
-          class="circle-image"
-        /> -->
-      <i class="bi bi-person-circle"></i>
-      {{ userName ? userName : "Login" }}</a
-    >
   </div>
 </nav>

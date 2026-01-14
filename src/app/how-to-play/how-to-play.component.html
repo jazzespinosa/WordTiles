@@ -1,0 +1,145 @@
+<div class="how-to-play-container">
+  <!-- Hero Section -->
+  <header class="hero">
+    <h1>How To Play</h1>
+    <p class="subtitle">Guess the word in limited turns!</p>
+  </header>
+
+  <!-- Rules Section -->
+  <section class="rules-section">
+    <div class="rule-card">
+      <div class="rule-number">1</div>
+      <div class="rule-content">
+        <h3>Make a Guess</h3>
+        <p>
+          Type any valid word with the correct number of letters and press Enter
+          to submit.
+        </p>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-number">2</div>
+      <div class="rule-content">
+        <h3>Check the Colors</h3>
+        <p>
+          After each guess, the tiles will change color to show how close your
+          guess was.
+        </p>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rule-number">3</div>
+      <div class="rule-content">
+        <h3>Keep Guessing</h3>
+        <p>
+          Use the feedback to refine your guesses. Solve the word before you run
+          out of turns!
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Color Legend Section -->
+  <section class="legend-section">
+    <h2>Color Guide</h2>
+    <div class="legend-grid">
+      <div class="legend-item">
+        <div class="example-tile correct">A</div>
+        <div class="legend-text">
+          <h4>Correct</h4>
+          <p>
+            The letter is in the word and in the <strong>correct spot</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="legend-item">
+        <div class="example-tile present">B</div>
+        <div class="legend-text">
+          <h4>Present</h4>
+          <p>
+            The letter is in the word but in the <strong>wrong spot</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="legend-item">
+        <div class="example-tile incorrect">C</div>
+        <div class="legend-text">
+          <h4>Incorrect</h4>
+          <p>The letter is <strong>not in the word</strong> at all.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Example Section -->
+  <section class="example-section">
+    <h2>Example</h2>
+    <p class="example-description">
+      Let's say the secret word is <strong>TRAIN</strong>. Here's how a guess
+      might look:
+    </p>
+
+    <div class="example-guess">
+      <div class="guess-word">
+        @for (tile of exampleTiles; track $index) {
+          <div class="example-tile" [ngClass]="tile.state">
+            {{ tile.letter }}
+          </div>
+        }
+      </div>
+      <div class="guess-explanation">
+        <p>In the guess <strong>CRANE</strong>:</p>
+        <ul>
+          <li>
+            <span class="color-hint correct-text">R</span> and
+            <span class="color-hint correct-text">A</span> are in the correct
+            positions
+          </li>
+          <li>
+            <span class="color-hint present-text">N</span> is in the word but in
+            the wrong position
+          </li>
+          <li>
+            <span class="color-hint incorrect-text">C</span> and
+            <span class="color-hint incorrect-text">E</span> are not in the word
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tips Section -->
+  <section class="tips-section">
+    <h2>Pro Tips</h2>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <span class="material-symbols-rounded tip-icon">lightbulb</span>
+        <p>
+          Start with words that have common vowels like
+          <strong>A, E, I, O, U</strong>.
+        </p>
+      </div>
+      <div class="tip-card">
+        <span class="material-symbols-rounded tip-icon">keyboard</span>
+        <p>
+          Pay attention to the keyboard colors — they track your used letters!
+        </p>
+      </div>
+      <div class="tip-card">
+        <span class="material-symbols-rounded tip-icon">psychology</span>
+        <p>
+          Use process of elimination. If a letter is gray, don't use it again.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <button class="play-btn" routerLink="/play">Start Playing</button>
+  </section>
+</div>

@@ -1,22 +1,28 @@
 import { Injectable } from '@angular/core';
 import {
   BehaviorSubject,
+  catchError,
   concatMap,
   map,
-  shareReplay,
+  Observable,
+  of,
   Subject,
+  switchMap,
   tap,
+  throwError,
 } from 'rxjs';
 import {
   type CellModel,
-  type GameConfigModel,
-  // type GameOverModel,
   type GuessPostResponseDto,
   type GetCurrentGameDto,
   LetterState,
   type TurnModel,
   GameState,
   NewGameResponseDto,
+  GlobalGameStatusModel,
+  HomeStatsModel,
+  GameHistoryModel,
+  StatsModel,
 } from './game.model';
 import { HttpClient } from '@angular/common/http';
 import { Environment } from '../../../environment/environment';
@@ -45,104 +51,44 @@ export class GameService {
     this.isGameOverModalOpen.next(value);
   }
 
-  // ========== keyboardStates ==========
-  private readonly keyboardStates = new BehaviorSubject<CellModel[]>([]);
-  readonly keyboardStates$ = this.keyboardStates.asObservable();
-  getKeyboardStates() {
-    return this.keyboardStates.getValue();
+  // ========== globalGameStatus ==========
+  private readonly globalGameStatus =
+    new BehaviorSubject<GlobalGameStatusModel>({
+      gameState: GameState.default,
+      gameId: 0,
+      wordLength: this.INITIAL_WORD_LENGTH,
+      maxTurns: this.INITIAL_MAX_TURNS,
+      currentTurn: 0,
+      guesses: [],
+    });
+  readonly globalGameStatus$ = this.globalGameStatus.asObservable();
+  setGlobalGameStatus(value: GlobalGameStatusModel) {
+    this.globalGameStatus.next(value);
   }
-  setKeyboardStates(values: CellModel[]) {
-    this.keyboardStates.next(values);
+  updateGlobalGameStatus(patch: Partial<GlobalGameStatusModel>) {
+    const current = this.globalGameStatus.value;
+    if (!current) {
+      return;
+    }
+    this.globalGameStatus.next({
+      ...current,
+      ...patch,
+    });
   }
-
-  // ========== keyboardState ==========
-  private readonly keyboardState = new BehaviorSubject<CellModel>({
-    value: '',
-    state: LetterState.default,
-  });
-  readonly keyboardState$ = this.keyboardState.asObservable();
-
-  // ========== currentTurnValue ==========
-  private readonly currentTurnValue = new BehaviorSubject<string>('');
-  readonly currentTurnValue$ = this.currentTurnValue.asObservable();
-
-  // ========== gameConfig ==========
-  private readonly gameConfig = new BehaviorSubject<GameConfigModel>({
-    wordLength: this.INITIAL_WORD_LENGTH,
-    maxTurns: this.INITIAL_MAX_TURNS,
-  });
-  readonly gameConfig$ = this.gameConfig.asObservable();
-  setGameConfig(value: GameConfigModel) {
-    this.gameConfig.next(value);
-  }
-
-  // ========== gameCellStateValues ==========
-  private readonly gameCellStateValues = new BehaviorSubject<TurnModel[]>([]);
-  readonly gameCellStateValues$ = this.gameCellStateValues.asObservable();
-  setGameCellStateValues(value: TurnModel[]) {
-    this.gameCellStateValues.next(value);
-  }
-  addGameCellStateValues(turnValue: string, cellValues: CellModel[]) {
-    this.gameCellStateValues.next([
-      ...this.gameCellStateValues.value,
-      {
-        turnValue: turnValue,
-        cellValue: cellValues,
-      },
-    ]);
-  }
-  getGameCellStateValues() {
-    return this.gameCellStateValues.getValue();
+  addGuessToGlobalGameStatus(guess: TurnModel) {
+    const current = this.globalGameStatus.value;
+    if (!current) return;
+    this.globalGameStatus.next({
+      ...current,
+      guesses: [...current.guesses, guess],
+    });
   }
 
-  // ========== gameState ==========
-  private readonly gameState = new BehaviorSubject<GameState>(
-    GameState.default,
-  );
-  readonly gameState$ = this.gameState.asObservable();
-  getGameState(): GameState {
-    return this.gameState.getValue();
-  }
-  setGameState(value: GameState) {
-    this.gameState.next(value);
-  }
-
-  // ========== answer ==========
-  private readonly answer = new BehaviorSubject<string>('');
-  readonly answer$ = this.answer.asObservable();
-  getAnswer(): string {
-    return this.answer.getValue();
-  }
-  setAnswer(value: string) {
-    this.answer.next(value);
-  }
-
-  // ========== gameResponse ==========
-  private readonly gameResponse = new BehaviorSubject<GetCurrentGameDto | null>(
-    null,
-  );
-  readonly gameResponse$ = this.gameResponse.asObservable();
-
-  // ========== gameId ==========
-  private readonly gameId = new BehaviorSubject<number>(0);
-  readonly gameId$ = this.gameId.asObservable();
-  getGameId(): number {
-    return this.gameId.getValue();
-  }
-  setGameId(value: number) {
-    this.gameId.next(value);
-  }
-
-  // ========== currentGame ==========
-  private readonly currentGame = new BehaviorSubject<GetCurrentGameDto | null>(
-    null,
-  );
-  readonly currentGame$ = this.currentGame.asObservable();
-  getCurrentGame(): GetCurrentGameDto | null {
-    return this.currentGame.getValue();
-  }
-  setCurrentGame(value: GetCurrentGameDto | null) {
-    this.currentGame.next(value);
+  // ========== tempInputValue ==========
+  private readonly tempTurnValue = new BehaviorSubject<string>('');
+  readonly tempTurnValue$ = this.tempTurnValue.asObservable();
+  setTempTurnValue(value: string) {
+    this.tempTurnValue.next(value);
   }
 
   // ========== guessResponse ==========
@@ -163,68 +109,83 @@ export class GameService {
     this.isGuessValid.next(value);
   }
 
+  resetGame() {
+    this.setGlobalGameStatus({
+      gameState: GameState.default,
+      gameId: 0,
+      wordLength: this.INITIAL_WORD_LENGTH,
+      maxTurns: this.INITIAL_MAX_TURNS,
+      currentTurn: 0,
+      guesses: [],
+    });
+  }
+
   onChangeTurnValue(newValue: string) {
-    if (newValue.length <= this.gameConfig.value.wordLength) {
-      this.currentTurnValue.next(newValue);
+    if (newValue.length <= this.globalGameStatus.value.wordLength) {
+      this.setTempTurnValue(newValue);
     }
   }
 
-  onEnterValue(enteredValue: string) {
-    return this.http.get<GetCurrentGameDto>(this.baseUrl + 'api/Game/get').pipe(
-      map((response) => ({
-        gameId: response.gameId,
-        currentTurn: response.currentTurn,
-        guessLength: response.guessLength,
-        maxTurns: response.maxTurns,
-        guesses: response.guesses,
-      })),
-      tap((game) => this.gameResponse.next(game)),
-      concatMap((game) =>
-        this.http
-          .post<GuessPostResponseDto>(this.baseUrl + 'api/Game/guess', {
-            GameId: game.gameId,
-            Guess: enteredValue,
-          })
-          .pipe(
-            map((response) => ({
-              gameId: response.gameId,
-              guess: response.guess,
-              turn: response.turn,
-              isGuessCorrect: response.isGuessCorrect,
-              answer: response.answer,
-              letterStates: response.letterStates,
-            })),
-          ),
-      ),
-      tap((postResponse) => this.processGuess(postResponse, enteredValue)),
-      map(() => void 0),
-    );
+  onEnterValue(enteredValue: string): Observable<GuessPostResponseDto> {
+    return this.http
+      .get<GetCurrentGameDto>(`${this.baseUrl}/api/Game/get-game`) //REDUCE API CALL. LET BACKEND HANDLE VALIDATION OF GAMEID
+      .pipe(
+        map((response) => ({
+          gameId: response.gameId,
+          currentTurn: response.turnsPlayed,
+          guessLength: response.guessLength,
+          maxTurns: response.maxTurns,
+          guesses: response.guesses,
+        })),
+        concatMap((game) =>
+          this.http
+            .post<GuessPostResponseDto>(`${this.baseUrl}/api/Game/guess`, {
+              GameId: game.gameId,
+              Guess: enteredValue,
+            })
+            .pipe(
+              map((response) => ({
+                gameId: response.gameId,
+                guess: response.guess,
+                turn: response.turn,
+                isGuessCorrect: response.isGuessCorrect,
+                answer: response.answer,
+                letterStates: response.letterStates,
+              })),
+            ),
+        ),
+        tap((postResponse) => {
+          this.processGuess(postResponse, enteredValue);
+          this.setGuessResponse(postResponse);
+        }),
+      );
   }
 
   processGuess(postResponse: GuessPostResponseDto, enteredValue: string) {
-    // this.setGuessResponse(postResponse);
-
     let cellValues: CellModel[] = [];
     let isWinner = false;
     let guess = postResponse.guess;
     let letterStates: number[] = postResponse.letterStates;
+    let prevTurn = this.globalGameStatus.value.currentTurn;
 
     for (let i = 0; i < guess.length; i++) {
       let stateNumber = letterStates[i];
       let state: LetterState = this.getCellStateFromNumber(stateNumber);
 
-      this.keyboardState.next({
-        value: enteredValue[i],
-        state: state,
-      });
       cellValues.push({
-        state: state,
         value: enteredValue[i],
+        state: state,
       });
     }
 
-    this.addGameCellStateValues(enteredValue, cellValues);
-    this.clearTempTurn();
+    this.addGuessToGlobalGameStatus({
+      turnValue: enteredValue,
+      cellValue: cellValues,
+    });
+    this.updateGlobalGameStatus({
+      currentTurn: prevTurn + 1,
+    });
+    this.setTempTurnValue('');
 
     for (const cellValue of cellValues) {
       if (cellValue.state !== LetterState.correct) {
@@ -235,33 +196,31 @@ export class GameService {
     }
 
     if (isWinner) {
-      this.onGameOver(postResponse.answer, GameState.win);
+      this.onGameOver(GameState.win);
       return;
     }
 
     if (
-      this.getGameCellStateValues().length >=
-      this.gameConfig.getValue().maxTurns
+      (this.globalGameStatus.value.currentTurn || 0) >=
+      this.globalGameStatus.value.maxTurns
     ) {
-      this.onGameOver(postResponse.answer, GameState.lose);
+      this.onGameOver(GameState.lose);
       return;
     }
   }
 
-  onGameOver(answer: string, gameState: GameState) {
-    this.setAnswer(answer);
-    this.setGameState(gameState);
+  onGameOver(gameState: GameState) {
+    this.updateGlobalGameStatus({ gameState: gameState });
     this.setIsGameOverModalOpen(true);
   }
 
-  onNewGameStart() {
-    let wordLength = this.gameConfig.value.wordLength;
-    let maxTurns = this.gameConfig.value.maxTurns;
+  onNewGameStart(wordLength: number, maxTurns: number) {
+    this.resetGame();
 
     return this.http
-      .post<NewGameResponseDto>(this.baseUrl + 'api/Game/newgame', {
-        wordLength: wordLength,
-        maxTurns: maxTurns,
+      .post<NewGameResponseDto>(`${this.baseUrl}/api/Game/newgame`, {
+        WordLength: wordLength,
+        MaxTurns: maxTurns,
       })
       .pipe(
         map((response) => ({
@@ -270,31 +229,76 @@ export class GameService {
           maxTurns: response.maxTurns,
         })),
         tap((response) => {
-          this.gameCellStateValues.next([]);
-          this.clearTempTurn();
-          this.setCurrentGame({
+          this.setTempTurnValue('');
+          this.setGlobalGameStatus({
+            gameState: GameState.newGame,
             gameId: response.gameId,
-            currentTurn: 0,
-            guessLength: response.wordLength,
+            wordLength: response.wordLength,
             maxTurns: response.maxTurns,
+            currentTurn: 0,
             guesses: [],
           });
-          this.setAnswer('');
-          this.setGameState(GameState.newGame);
         }),
       );
   }
 
   getGame() {
-    return this.http.get<GetCurrentGameDto>(this.baseUrl + 'api/Game/get').pipe(
-      map((response) => ({
-        gameId: response.gameId,
-        currentTurn: response.currentTurn,
-        guessLength: response.guessLength,
-        maxTurns: response.maxTurns,
-        guesses: response.guesses,
-      })),
-    );
+    return this.http
+      .get<GetCurrentGameDto>(`${this.baseUrl}/api/Game/get-game`)
+      .pipe(
+        switchMap((response) => this.getGameHelper(response)),
+        catchError((error) => {
+          if (
+            error.error.message === 'No active game found.' ||
+            error.error.message === 'Game not found.'
+          ) {
+            this.updateGlobalGameStatus({
+              gameState: GameState.default,
+              gameId: 0,
+              wordLength: this.INITIAL_WORD_LENGTH,
+              maxTurns: this.INITIAL_MAX_TURNS,
+              currentTurn: 0,
+              guesses: [],
+            });
+          }
+          return throwError(() => error);
+        }),
+      );
+  }
+
+  private getGameHelper(game: GetCurrentGameDto) {
+    if (game) {
+      let guessWord = '';
+      let letterStates: number[] = [];
+      let guessesAndStates: TurnModel[] = [];
+      game.guesses.forEach((guess) => {
+        guessWord = guess.guess;
+        letterStates = guess.letterStates;
+        let cellModels: CellModel[] = [];
+        for (let index = 0; index < guessWord.length; index++) {
+          let cellModel: CellModel = {
+            value: guessWord[index],
+            state: this.getCellStateFromNumber(letterStates[index]),
+          };
+          cellModels.push(cellModel);
+        }
+
+        guessesAndStates.push({
+          turnValue: guessWord,
+          cellValue: cellModels,
+        });
+      });
+
+      this.setGlobalGameStatus({
+        gameState: GameState.inProgress,
+        gameId: game.gameId,
+        wordLength: game.guessLength,
+        maxTurns: game.maxTurns,
+        currentTurn: game.turnsPlayed,
+        guesses: guessesAndStates,
+      });
+    }
+    return of(game);
   }
 
   getCellStateFromNumber(stateNumber: number): LetterState {
@@ -318,29 +322,92 @@ export class GameService {
     return state;
   }
 
-  updateKeyboardStatesOnLoad(guessesAndStates: TurnModel[]) {
-    let keyboardStates: CellModel[] = [];
-    for (let i = 0; i < guessesAndStates.length; i++) {
-      for (let f = 0; f < guessesAndStates[i].cellValue.length; f++) {
-        let keyboardState: CellModel = {
-          value: guessesAndStates[i].cellValue[f].value,
-          state: guessesAndStates[i].cellValue[f].state,
-        };
-
-        keyboardStates.push(keyboardState);
-      }
-    }
-    this.setKeyboardStates(keyboardStates);
+  getHomeStats(): Observable<HomeStatsModel> {
+    return this.http
+      .get<HomeStatsModel>(`${this.baseUrl}/api/Game/get-homestats`)
+      .pipe(
+        map((response) => ({
+          hasExistingGame: response.hasExistingGame,
+          gamesPlayed: response.gamesPlayed,
+          winPercentage: response.winPercentage,
+          currentStreak: response.currentStreak,
+          homeGameHistories: response.homeGameHistories
+            .map((history) => ({
+              ...history,
+              date: new Date(history.date + 'Z'),
+            }))
+            .map((history) => ({
+              ...history,
+              result: this.getGameStateFromNumber(
+                +history.result,
+                history.turnsSolved,
+                history.maxTurns,
+              ),
+            })),
+        })),
+      );
   }
 
-  getCurrentTurn() {
-    return this.gameCellStateValues$.pipe(
-      map((values) => values.length),
-      shareReplay(1),
+  private getGameStateFromNumber(
+    stateNumber: number,
+    turnsSolved: number,
+    maxTurns: number,
+  ): string {
+    let state: string = '';
+    switch (stateNumber) {
+      case 0:
+        state = 'UNKNOWN';
+        break;
+      case 1:
+        state = 'IN PROGRESS';
+        break;
+      case 2:
+        state = 'WIN';
+        break;
+      case 3:
+        state = 'LOSS';
+        break;
+      default:
+    }
+
+    if (state === 'LOSS' && turnsSolved < maxTurns) {
+      state = 'ABANDONED';
+    }
+
+    return state;
+  }
+
+  getGameDetails(gameId: number): Observable<GetCurrentGameDto> {
+    return this.http.get<GetCurrentGameDto>(
+      `${this.baseUrl}/api/Game/game-id/${gameId}`,
     );
   }
 
-  clearTempTurn() {
-    this.currentTurnValue.next('');
+  getStats(): Observable<StatsModel> {
+    return this.http.get<any>(`${this.baseUrl}/api/Game/get-stats`);
+  }
+
+  getFullHistory(page: number, size: number): Observable<GameHistoryModel[]> {
+    return this.http
+      .get<
+        GameHistoryModel[]
+      >(`${this.baseUrl}/api/Game/get-history?pageNumber=${page}&pageSize=${size}`)
+      .pipe(
+        map((response) =>
+          response
+            .map((history) => ({
+              ...history,
+              date: new Date(history.date + 'Z'),
+            }))
+            .map((history) => ({
+              ...history,
+              result: this.getGameStateFromNumber(
+                +history.result,
+                history.turnsSolved,
+                history.maxTurns,
+              ),
+            })),
+        ),
+      );
   }
 }

@@ -1,0 +1,57 @@
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 50;
+}
+
+.alert-box {
+  top: 30vh;
+  width: max-content;
+  padding: 0.5em;
+  z-index: 100;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+  left: 50% !important;
+  position: absolute !important;
+  transform: translateX(-50%) !important;
+}
+
+.alert-box-actions {
+  text-align: right;
+}
+
+.alert-box-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+p {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+button {
+  margin: 0;
+}
+
+.alert-box-separator {
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  height: 2px;
+  background-color: black;
+}
+
+.warning {
+  color: #febd2d;
+}
+
+.error {
+  color: #ff3d3d;
+}

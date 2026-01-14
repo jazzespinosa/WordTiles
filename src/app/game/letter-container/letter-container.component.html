@@ -1,20 +1,19 @@
-<div class="card" [ngClass]="invalidTurn ? 'shake-animation' : ''">
-  <!-- <div style="position: fixed; border-radius: inherit"></div> -->
-  <div
-    class="body"
-    [ngClass]="[cellStateClass, (isGameOver | async) ? 'disabled' : '']"
-    [@cellAnimate]="animateState"
-    (@cellAnimate.start)="onAnimateStart($event)"
-  >
-    <!-- get current row/turn input value -->
-    @if (currentTurnValue && currentTurn === turnIndex) {
-    <h3>{{ currentTurnValue }}</h3>
-    <!-- display previous row/turn values -->
-    } @else if (cellValue) {
-    <h3>{{ cellValue }}</h3>
-    <!-- display space for non-played cells -->
-    } @else {
-    <h3>&nbsp;</h3>
-    }
+<div class="card flip-card" [class.shake-animation]="invalidTurn">
+  <div class="flip-card-inner" [class.quick-flip]="isFlipping">
+    <div
+      class="body flip-card-front {{ showColor ? cellStateClass : '' }}"
+      [ngClass]="[(isGameOver | async) ? 'disabled' : '']"
+      [@cellAnimate]="animateState"
+      (@cellAnimate.start)="onAnimateStart($event)"
+    >
+      @if (cellValue) {
+        <h3>{{ cellValue }}</h3>
+      } @else {
+        <h3>&nbsp;</h3>
+      }
+    </div>
+    <div class="body flip-card-back default">
+      <h3>{{ cellValue }}</h3>
+    </div>
   </div>
 </div>

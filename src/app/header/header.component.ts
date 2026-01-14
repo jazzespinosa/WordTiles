@@ -1,15 +1,18 @@
 import {
   Component,
+  DestroyRef,
   EventEmitter,
   OnDestroy,
   OnInit,
   Output,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, map, Observable, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { UserModel } from '../auth/auth.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AppService } from '../app.service';
 
 @Component({
   selector: 'app-header',
@@ -18,31 +21,50 @@ import { UserModel } from '../auth/auth.model';
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
-export class HeaderComponent implements OnInit, OnDestroy {
-  @Output() sideNavMenuClicked = new EventEmitter<void>();
-  @Output() titleClicked = new EventEmitter<void>();
+export class HeaderComponent implements OnInit {
+  userData: UserModel | null = null;
+  isLoading: boolean = false;
+  isViewPortSmall: boolean = false;
 
-  userName: string | null = '';
-  subsUserName!: Subscription;
-
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private destroyRef: DestroyRef,
+    private appService: AppService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
-    this.subsUserName = this.authService.user$.subscribe(
-      (userModel) => (this.userName = userModel?.name ?? null),
-    );
+    this.authService.user$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((userModel) => {
+        this.userData = userModel;
+      });
+
+    if (window.innerWidth < 440) this.isViewPortSmall = true;
+    else this.isViewPortSmall = false;
   }
 
-  ngOnDestroy(): void {
-    this.subsUserName.unsubscribe();
+  onLogin() {
+    this.router.navigate(['/auth']);
+    this.appService.closeSideNav();
   }
 
-  onSideNavMenuClick(event: Event) {
+  onLogout(event: Event) {
     event.stopPropagation();
-    this.sideNavMenuClicked.emit();
+    this.isLoading = true;
+    setTimeout(() => {
+      this.authService.logout();
+      this.router.navigate(['/auth']);
+      this.isLoading = false;
+    }, 1000);
+    this.appService.closeSideNav();
+  }
+
+  onSideNavMenuClick() {
+    this.appService.toggleSideNav();
   }
 
   onTitleClick() {
-    this.titleClicked.emit();
+    this.appService.closeSideNav();
   }
 }

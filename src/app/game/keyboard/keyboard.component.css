@@ -33,13 +33,19 @@
 }
 
 .simple-keyboard.hg-layout-default .incorrect {
-  background-color: #3A3A3C;
+  background-color: #3a3a3c;
+  /* border: 2px solid #4a4a4c;
+  box-shadow: 0 4px 15px rgba(58, 58, 60, 0.4); */
 }
 
 .simple-keyboard.hg-layout-default .present {
-  background-color: rgb(221, 221, 93);
+  background-color: rgb(235, 200, 4);
+  /* border: 2px solid rgb(248, 226, 103);
+  box-shadow: 0 4px 15px rgba(221, 221, 93, 0.4); */
 }
 
 .simple-keyboard.hg-layout-default .correct {
   background-color: rgb(105, 158, 26);
+  /* border: 2px solid rgb(125, 180, 40);
+  box-shadow: 0 4px 15px rgba(105, 158, 26, 0.4); */
 }

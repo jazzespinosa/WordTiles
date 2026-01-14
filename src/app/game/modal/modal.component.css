@@ -5,7 +5,7 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1040;
+  z-index: 50;
 }
 
 .modal {
@@ -13,7 +13,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1050;
+  z-index: 60;
   display: block;
   width: fit-content;
 }
@@ -98,10 +98,4 @@
 .alert.alert-danger {
   --bs-alert-padding-x: 0.5rem;
   --bs-alert-padding-y: 0.5rem;
-}
-
-.material-symbols-rounded {
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
-
-  vertical-align: text-bottom;
 }

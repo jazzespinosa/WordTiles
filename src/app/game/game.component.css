@@ -1,6 +1,6 @@
 .main-container {
   text-align: center;
-  background-color: #F1F1F1;
+  background-color: #f1f1f1;
   padding-top: 3rem;
   padding-bottom: 1rem;
 }
@@ -13,8 +13,8 @@
   margin-right: 0;
   margin-left: 0;
 
-  >.col,
-  >[class*="col-"] {
+  > .col,
+  > [class*="col-"] {
     padding-right: 0px;
     padding-left: 0px;
   }
@@ -25,5 +25,5 @@
   position: sticky;
   padding: 1rem;
   bottom: 0rem;
-  background-color: #F1F1F1;
+  background-color: #f1f1f1;
 }

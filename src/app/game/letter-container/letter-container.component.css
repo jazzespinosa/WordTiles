@@ -26,23 +26,30 @@ h3 {
   border: 1px solid lightgray;
 }
 
-.card:has(> .default.disabled) {
+.card:has(> .default.disabled),
+.flip-card-inner:has(> .default.disabled) {
   background-color: gray;
   opacity: 50%;
 }
 
 .incorrect {
   background-color: #3a3a3c;
+  /* border: 2px solid #4a4a4c;
+  box-shadow: 0 4px 15px rgba(58, 58, 60, 0.4); */
   color: white;
 }
 
 .present {
-  background-color: rgb(221, 221, 93);
+  background-color: rgb(235, 200, 4);
+  /* border: 2px solid rgb(248, 226, 103);
+  box-shadow: 0 4px 15px rgba(221, 221, 93, 0.4); */
   color: white;
 }
 
 .correct {
   background-color: rgb(105, 158, 26);
+  /* border: 2px solid rgb(125, 180, 40);
+  box-shadow: 0 4px 15px rgba(105, 158, 26, 0.4); */
   color: white;
 }
 
@@ -78,4 +85,41 @@ h3 {
   60% {
     transform: translate3d(4px, 0, 0);
   }
+}
+
+.flip-card {
+  width: 3.5rem;
+  height: 4.5rem;
+  border: 1px solid #f1f1f1;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+
+.flip-card .flip-card-inner.flip-animation {
+  transform: rotateX(-180deg);
+}
+
+.flip-card .flip-card-inner.quick-flip {
+  transform: rotateX(180deg);
+  transition: none !important;
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateX(180deg);
 }

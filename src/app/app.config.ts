@@ -1,23 +1,38 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import {
+  APP_INITIALIZER,
+  ApplicationConfig,
+  inject,
+  PLATFORM_ID,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
-
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideAuth, getAuth } from '@angular/fire/auth';
-import { environment } from '../../environment/environment';
-
+import { provideFirebaseApp } from '@angular/fire/app';
+import { provideAuth } from '@angular/fire/auth';
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import {
   provideHttpClient,
+  withFetch,
   withInterceptors,
   withInterceptorsFromDi,
 } from '@angular/common/http';
 import { AuthInterceptorService } from './auth/auth-interceptor.service';
+import { AuthService } from './auth/auth.service';
+import { isPlatformBrowser } from '@angular/common';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { app, auth } from '../../environment/firebase.config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeAuthFactory,
+      multi: true,
+    },
+    provideCharts(withDefaultRegisterables()),
     provideHttpClient(
+      withFetch(),
       withInterceptorsFromDi(),
       withInterceptors([AuthInterceptorService]),
     ),
@@ -25,7 +40,20 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideClientHydration(),
     provideAnimations(),
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideAuth(() => getAuth()),
+    provideFirebaseApp(() => app),
+    provideAuth(() => auth),
   ],
 };
+
+function initializeAuthFactory(): () => Promise<void> {
+  const platformId = inject(PLATFORM_ID);
+  const authService = inject(AuthService);
+
+  return () => {
+    // Skip auth initialization on server
+    if (!isPlatformBrowser(platformId)) {
+      return Promise.resolve();
+    }
+    return authService.initializeAuth();
+  };
+}

@@ -1,3 +1,7 @@
+@import "../node_modules/@angular/material/prebuilt-themes/azure-blue.css";
+@import url("https://fonts.googleapis.com/css2?family=Bakbak+One&display=swap");
+/* @import "../node_modules/@angular/material/prebuilt-themes/indigo-pink.css"; */
+
 .mat-drawer-backdrop {
   background-color: rgba(0, 0, 0, 0.6) !important;
 }
@@ -19,4 +23,36 @@
 .mat-drawer-backdrop:not(.mat-drawer-shown) {
   opacity: 0;
   pointer-events: none;
+}
+
+.material-symbols-rounded {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+
+  vertical-align: text-bottom;
+}
+
+.custom-snackbar {
+  position: absolute;
+  background-color: transparent;
+  color: #fff;
+  /* width: 200px; */
+  display: flex;
+  top: 6%;
+  left: 50%;
+  --mdc-snackbar-container-color: rgb(82, 80, 80);
+  --mdc-snackbar-supporting-text-color: rgb(255, 255, 255);
+  --mat-snack-bar-button-color: rgb(255, 255, 255);
+}
+
+.mat-mdc-snack-bar-handset .mat-mdc-snack-bar-container {
+  width: 90vw !important;
+  top: 12% !important;
+}
+
+.mat-mdc-snack-bar-container {
+  margin: 0 !important;
 }

@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GameService } from '../game.service';
 import { CommonModule } from '@angular/common';
-import { catchError, map, Observable, Subscription, throwError } from 'rxjs';
+import { catchError, throwError } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { GameState } from '../game.model';
 
 type ErrorType = {
   errorName: string;
@@ -16,7 +18,7 @@ type ErrorType = {
   templateUrl: './modal.component.html',
   styleUrl: './modal.component.css',
 })
-export class ModalComponent implements OnInit, OnDestroy {
+export class ModalComponent implements OnInit {
   selectedWordLength = 5;
   selectedMaxTurns = 6;
   isLoading = false;
@@ -24,20 +26,23 @@ export class ModalComponent implements OnInit, OnDestroy {
   isResumeEnabled = false;
   ErrorType = { errorName: '', errorMessage: '' };
 
-  private subsCurentGame!: Subscription;
-
-  constructor(private gameService: GameService) {}
+  constructor(
+    private gameService: GameService,
+    private destroyRef: DestroyRef,
+  ) {}
 
   ngOnInit(): void {
-    this.subsCurentGame = this.gameService.currentGame$.subscribe({
-      next: (currentGame) => {
-        if (currentGame) {
-          this.isResumeEnabled = true;
-        } else {
-          this.isResumeEnabled = false;
-        }
-      },
-    });
+    this.gameService.globalGameStatus$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (globalGameStatus) => {
+          if (globalGameStatus.gameId !== 0) {
+            this.isResumeEnabled = true;
+          } else {
+            this.isResumeEnabled = false;
+          }
+        },
+      });
   }
 
   onNewGameStartModal() {
@@ -45,20 +50,20 @@ export class ModalComponent implements OnInit, OnDestroy {
     this.isError = false;
     this.ErrorType = { errorName: '', errorMessage: '' };
 
-    this.gameService.setGameConfig({
-      wordLength: +this.selectedWordLength,
-      maxTurns: +this.selectedMaxTurns,
-    });
-
     this.gameService
-      .onNewGameStart()
+      .onNewGameStart(+this.selectedWordLength, +this.selectedMaxTurns)
       .pipe(
+        takeUntilDestroyed(this.destroyRef),
         catchError((error) => {
           return throwError(() => new Error('Something went wrong.', error));
-        })
+        }),
       )
       .subscribe({
-        next: () => {},
+        next: () => {
+          this.gameService.updateGlobalGameStatus({
+            gameState: GameState.inProgress,
+          });
+        },
         error: (error) => {
           this.isLoading = false;
           this.isError = true;
@@ -81,9 +86,5 @@ export class ModalComponent implements OnInit, OnDestroy {
 
   onResumeModal() {
     this.gameService.setIsGameModalOpen(false);
-  }
-
-  ngOnDestroy(): void {
-    this.subsCurentGame.unsubscribe();
   }
 }

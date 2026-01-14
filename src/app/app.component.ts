@@ -1,12 +1,13 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavModule } from '@angular/material/sidenav';
 // import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { HeaderComponent } from './header/header.component';
 import { SideNavComponent } from './side-nav/side-nav.component';
-import { AuthService } from './auth/auth.service';
+import { AppService } from './app.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-root',
@@ -22,21 +23,26 @@ import { AuthService } from './auth/auth.service';
   styleUrl: './app.component.css',
 })
 export class AppComponent implements OnInit {
-  private authService = inject(AuthService);
+  isSideNavOpen = false;
+
+  constructor(
+    private appService: AppService,
+    private destroyRef: DestroyRef,
+  ) {}
 
   ngOnInit(): void {
-    this.authService.user$.subscribe((user) => console.log('user', user));
+    this.appService.isSideNavOpen$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.isSideNavOpen = value;
+      });
   }
 
-  @ViewChild('sidenav') sidenav!: MatSidenav;
-
   toggleSideNav() {
-    this.sidenav.toggle();
+    this.appService.toggleSideNav();
   }
 
   closeSideNav() {
-    if (this.sidenav.opened) {
-      this.sidenav.close();
-    }
+    this.appService.closeSideNav();
   }
 }

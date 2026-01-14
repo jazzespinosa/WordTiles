@@ -1,6 +1,13 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { GameService } from '../game.service';
-import { combineLatest, map, Observable, Subscription, tap } from 'rxjs';
+import {
+  combineLatest,
+  concatMap,
+  map,
+  Observable,
+  Subscription,
+  tap,
+} from 'rxjs';
 import {
   AnimationEvent,
   animate,
@@ -11,6 +18,8 @@ import {
 } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { GameState } from '../game.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-letter-container',
@@ -21,117 +30,151 @@ import { GameState } from '../game.model';
   animations: [
     trigger('cellAnimate', [
       state(
-        'hasValue',
+        'hasValue', // letter-in transition
         style({
           // 'background-color': 'red',
           opacity: 1,
           transform: 'translateX(0)',
-        })
+        }),
       ),
       state(
-        'hasNoValue',
+        'hasNoValue', // letter-out transition
         style({
           // 'background-color': 'purple',
           opacity: 0,
           transform: 'translateX(-2rem)',
-        })
+        }),
       ),
       transition('hasNoValue <=> hasValue', animate(300)),
     ]),
   ],
 })
-export class LetterContainerComponent implements OnInit, OnDestroy {
-  @Input() turnIndex!: number; //row
-  @Input() letterIndex!: number; //column
+export class LetterContainerComponent implements OnInit {
+  @Input() turnIndex!: number; //row of letter container
+  @Input() letterIndex!: number; //column of letter container
 
   cellValue!: string;
-  currentTurn = 0;
+  currentTurn = 0; //current turn of the game
   currentTurnValue = '';
   prevTurnValue = '';
 
   cellStateClass = 'default';
   animateState = 'hasNoValue';
+  isFlipping = false;
+  showColor = false;
+  isInitialized = false;
 
   invalidTurn = false;
   isGameOver!: Observable<boolean>;
 
-  private subsGetTurnValue!: Subscription;
-  private subsGetGameCellState!: Subscription;
-  private subsIsInvalidTurn!: Subscription;
-
-  constructor(private gameService: GameService) {}
+  constructor(
+    private gameService: GameService,
+    private destroyRef: DestroyRef,
+    private _snackBar: MatSnackBar,
+  ) {}
 
   ngOnInit(): void {
-    this.subsGetGameCellState = this.gameService.gameCellStateValues$
-      .pipe(tap((values) => (this.currentTurn = values.length)))
-      .subscribe((value) => {
-        if (value[this.turnIndex]) {
-          this.cellStateClass = value[this.turnIndex].cellValue[
-            this.letterIndex
-          ]
-            ? value[this.turnIndex].cellValue[this.letterIndex].state.toString()
-            : 'default';
-        }
-        if (value.length === 0) {
-          this.cellStateClass = 'default';
-        }
+    this.gameService.globalGameStatus$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        tap((values) => (this.currentTurn = values.currentTurn)),
+      )
+      .subscribe((values) => {
+        if (values.guesses[this.turnIndex]) {
+          this.cellValue =
+            values.guesses[this.turnIndex].turnValue[this.letterIndex];
+          this.cellStateClass =
+            values.guesses[this.turnIndex].cellValue[
+              this.letterIndex
+            ].state.toString();
 
-        let turnValue = value[this.turnIndex];
-        if (turnValue) {
-          this.cellValue = turnValue.turnValue[this.letterIndex];
+          if (!this.isInitialized) {
+            this.showColor = true;
+          } else {
+            if (values.currentTurn === this.turnIndex) {
+              setTimeout(() => {
+                this.isFlipping = true;
+                this.showColor = true;
+                setTimeout(() => {
+                  this.isFlipping = false;
+                }, 50);
+              }, this.letterIndex * 200);
+            }
+          }
         } else {
           this.cellValue = ' ';
+          this.cellStateClass = 'default';
         }
       });
 
-    this.subsGetTurnValue = combineLatest([
-      this.gameService.currentTurnValue$,
-      this.gameService.getCurrentTurn(),
-    ]).subscribe(([value, currentTurn]) => {
+    this.gameService.tempTurnValue$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (this.currentTurn === this.turnIndex && value[this.letterIndex]) {
+          this.cellValue = value[this.letterIndex];
+        }
+      });
+
+    //letter transition animation for current turn
+    combineLatest([
+      this.gameService.tempTurnValue$,
+      this.gameService.globalGameStatus$,
+    ]).subscribe(([tempTurnValue, { currentTurn }]) => {
       this.prevTurnValue = this.currentTurnValue;
-      this.currentTurnValue = value[this.letterIndex] ?? '';
+      this.currentTurnValue = tempTurnValue[this.letterIndex] ?? '';
 
       if (
         (this.currentTurnValue && currentTurn === this.turnIndex) ||
         currentTurn > this.turnIndex
       ) {
-        this.animateState = 'hasValue';
+        if (!this.isInitialized && currentTurn > this.turnIndex) {
+          setTimeout(
+            () => {
+              this.animateState = 'hasValue';
+            },
+            this.turnIndex * 300 + this.letterIndex * 100,
+          );
+        } else {
+          this.animateState = 'hasValue';
+        }
       } else {
         this.animateState = 'hasNoValue';
       }
+      this.isInitialized = true;
     });
 
-    this.subsIsInvalidTurn = this.gameService.isGuessValid$.subscribe(
-      (value) => {
+    this.gameService.isGuessValid$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
         if (this.currentTurn === this.turnIndex) {
           this.invalidTurn = !value;
           if (!value) {
             this.triggerShake();
           }
         }
-      }
-    );
+      });
 
-    this.isGameOver = this.gameService.gameState$.pipe(
+    this.isGameOver = this.gameService.globalGameStatus$.pipe(
       map(
         (value) =>
-          value === GameState.win ||
-          value === GameState.lose ||
-          value === GameState.default
-      )
+          value.gameState === GameState.win ||
+          value.gameState === GameState.lose ||
+          value.gameState === GameState.default,
+      ),
     );
-  }
-
-  ngOnDestroy(): void {
-    this.subsGetTurnValue.unsubscribe();
-    this.subsGetGameCellState.unsubscribe();
-    this.subsIsInvalidTurn.unsubscribe();
   }
 
   triggerShake() {
     setTimeout(() => {
       this.gameService.setIsGuessValid(true);
     }, 1000);
+
+    this._snackBar.open('Oops! That is not a valid word.', '', {
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      duration: 1000,
+      panelClass: ['custom-snackbar', 'translate-middle-x'],
+    });
   }
 
   onAnimateStart(event: AnimationEvent) {

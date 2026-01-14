@@ -1,35 +1,38 @@
-import {
-  Component,
-  EventEmitter,
-  OnDestroy,
-  OnInit,
-  Output,
-} from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { GameService } from '../game/game.service';
+import { Component, DestroyRef, OnInit } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { AppService } from '../app.service';
+import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-side-nav',
   standalone: true,
-  imports: [RouterLink, MatIconModule],
+  imports: [RouterLink, MatIconModule, CommonModule],
   templateUrl: './side-nav.component.html',
   styleUrl: './side-nav.component.css',
 })
 export class SideNavComponent implements OnInit {
-  @Output() closeSideNav = new EventEmitter<void>();
+  activeLink: string = '';
 
-  constructor(private router: Router, private gameService: GameService) {}
+  constructor(
+    private appService: AppService,
+    private router: Router,
+    private destroyRef: DestroyRef,
+  ) {}
 
-  ngOnInit(): void {}
-
-  onPlayClicked() {
-    this.gameService.setIsGameModalOpen(true);
-    this.closeSideNav.emit();
+  ngOnInit(): void {
+    this.router.events
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter((event) => event instanceof NavigationEnd),
+      )
+      .subscribe((event: NavigationEnd) => {
+        this.activeLink = event.urlAfterRedirects;
+      });
   }
-
-  onAboutClicked() {
-    this.closeSideNav.emit();
+  closeSideNav() {
+    this.appService.closeSideNav();
   }
 }

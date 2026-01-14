@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
+  DestroyRef,
   Inject,
   OnDestroy,
   OnInit,
@@ -9,8 +10,10 @@ import {
 } from '@angular/core';
 import Keyboard from 'simple-keyboard';
 import { GameService } from '../game.service';
-import { map, Observable, Subscription, take, tap } from 'rxjs';
+import { Subscription, tap } from 'rxjs';
 import { CellModel, GameState, LetterState } from '../game.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AppService } from '../../app.service';
 
 @Component({
   selector: 'app-keyboard',
@@ -22,25 +25,36 @@ import { CellModel, GameState, LetterState } from '../game.model';
 })
 export class KeyboardComponent implements OnInit, OnDestroy {
   wordLength = 0;
-  value = '';
+  inputValue = '';
   keyboard!: Keyboard;
   isGameOver = false;
 
-  private keyDownListener!: (event: KeyboardEvent) => void;
+  isModalOpen = false;
+  isSideNavOpen = false;
 
-  private subsGameConfig!: Subscription;
-  private subsKeyboardState!: Subscription;
-  private subsIsGameOver!: Subscription;
-  private subsIsNewGameStarted!: Subscription;
-  private subsCurrentKeyboardStates!: Subscription;
+  private keyDownListener!: (event: KeyboardEvent) => void;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object, // checks the current platform the app is running (browser, server, or mobile env)
-    private gameService: GameService
+    private gameService: GameService,
+    private appService: AppService,
+    private destroyRef: DestroyRef,
   ) {}
 
   ngOnInit(): void {
     this.initKeyboard();
+
+    this.gameService.isGameModalOpen$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.isModalOpen = value;
+      });
+
+    this.appService.isSideNavOpen$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.isSideNavOpen = value;
+      });
 
     // checks if the code is running in the browser
     if (isPlatformBrowser(this.platformId)) {
@@ -51,44 +65,57 @@ export class KeyboardComponent implements OnInit, OnDestroy {
       window.addEventListener('keydown', this.keyDownListener);
     }
 
-    this.subsGameConfig = this.gameService.gameConfig$.subscribe((value) => {
-      this.wordLength = value.wordLength;
-    });
+    this.gameService.globalGameStatus$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.wordLength = value.wordLength;
+      });
 
-    this.subsKeyboardState = this.gameService.keyboardState$.subscribe(
-      (value) => {
-        this.updateKeyboardButtonTheme(value.value, value.state);
-      }
-    );
-
-    this.subsIsGameOver = this.gameService.gameState$.subscribe((value) => {
-      if (value === GameState.win || value === GameState.lose) {
-        this.isGameOver = true;
-      } else {
-        this.isGameOver = false;
-      }
-    });
-
-    this.subsIsNewGameStarted = this.gameService.gameState$.subscribe(
-      (gameState) => {
-        if (gameState === GameState.newGame) {
-          this.resetKeyboardStates();
-          this.gameService.setGameState(GameState.inProgress);
+    this.gameService.globalGameStatus$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (value.guesses.length > 0) {
+          for (let guess of value.guesses) {
+            let latestCellModel = guess.cellValue;
+            for (let index = 0; index < latestCellModel.length; index++) {
+              this.updateKeyboardButtonTheme({
+                value: latestCellModel[index].value,
+                state: latestCellModel[index].state,
+              });
+            }
+          }
         }
-      }
-    );
+      });
+
+    this.gameService.globalGameStatus$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (
+          value.gameState === GameState.win ||
+          value.gameState === GameState.lose
+        ) {
+          this.isGameOver = true;
+        } else {
+          this.isGameOver = false;
+        }
+      });
+
+    this.gameService.globalGameStatus$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (
+          value.gameState === GameState.newGame ||
+          value.gameState === GameState.default
+        ) {
+          this.resetKeyboardStates();
+        }
+      });
   }
 
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.platformId) && this.keyDownListener) {
       window.removeEventListener('keydown', this.keyDownListener);
     }
-
-    this.subsGameConfig.unsubscribe();
-    this.subsKeyboardState.unsubscribe();
-    this.subsIsGameOver.unsubscribe();
-    this.subsIsNewGameStarted.unsubscribe();
-    this.subsCurrentKeyboardStates.unsubscribe();
   }
 
   initKeyboard() {
@@ -106,18 +133,6 @@ export class KeyboardComponent implements OnInit, OnDestroy {
         '{enter}': 'ENTER',
       },
     });
-
-    let currentKeyboardStates: CellModel[] = [];
-    this.subsCurrentKeyboardStates = this.gameService.keyboardStates$.subscribe(
-      (value) => {
-        currentKeyboardStates = value;
-        if (currentKeyboardStates.length > 0) {
-          currentKeyboardStates.forEach((item) => {
-            this.updateKeyboardButtonTheme(item.value, item.state);
-          });
-        }
-      }
-    );
   }
 
   resetKeyboardStates() {
@@ -133,35 +148,41 @@ export class KeyboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if ((key === '{bksp}' || key === 'Backspace') && this.value.length > 0) {
-      this.value = this.value.slice(0, this.value.length - 1);
-      this.gameService.onChangeTurnValue(this.value);
-    } else if (
-      key === '{enter}' ||
-      key === 'Enter'
-      // &&  this.value.length === this.wordLength
+    if (this.isModalOpen || this.isSideNavOpen) {
+      return;
+    }
+
+    if (
+      (key === '{bksp}' || key === 'Backspace') &&
+      this.inputValue.length > 0
     ) {
-      // this.keyboard.addButtonTheme(key, 'correct-btn');
-      this.gameService.onEnterValue(this.value).subscribe({
-        next: () => {
-          this.gameService.setIsGuessValid(true);
-          this.value = '';
-        },
-        error: (err) => {
-          if (err.error.startsWith('Invalid guess word')) {
-            this.gameService.setIsGuessValid(false);
-          }
-          if (
-            err.error ===
-            'Guess word length does not match the game word length.'
-          ) {
-            this.gameService.setIsGuessValid(false);
-          }
-        },
-      });
-    } else if (this.isAlphabet(key) && this.value.length < this.wordLength) {
-      this.value = this.value + key.toUpperCase();
-      this.gameService.onChangeTurnValue(this.value);
+      this.inputValue = this.inputValue.slice(0, this.inputValue.length - 1);
+      this.gameService.onChangeTurnValue(this.inputValue);
+    } else if (key === '{enter}' || key === 'Enter') {
+      this.gameService
+        .onEnterValue(this.inputValue)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (value) => {
+            this.gameService.setIsGuessValid(true);
+            this.inputValue = '';
+          },
+          error: (err) => {
+            if (
+              err.error.message.startsWith('Invalid guess word') ||
+              err.error.message ===
+                'Guess word length does not match the game word length.'
+            ) {
+              this.gameService.setIsGuessValid(false);
+            }
+          },
+        });
+    } else if (
+      this.isAlphabet(key) &&
+      this.inputValue.length < this.wordLength
+    ) {
+      this.inputValue = this.inputValue + key.toUpperCase();
+      this.gameService.onChangeTurnValue(this.inputValue);
     }
   }
 
@@ -172,22 +193,23 @@ export class KeyboardComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  updateKeyboardButtonTheme(key: string, state: LetterState) {
+  updateKeyboardButtonTheme(cellModel: CellModel) {
     let keyboardClasses: string[] = [];
-    if (this.keyboard.getButtonThemeClasses(key).length > 0) {
-      keyboardClasses = this.keyboard.getButtonThemeClasses(key);
+    if (this.keyboard.getButtonThemeClasses(cellModel.value).length > 0) {
+      keyboardClasses = this.keyboard.getButtonThemeClasses(cellModel.value);
     }
     if (
-      state === LetterState.correct ||
-      (state === LetterState.present && !keyboardClasses.includes('correct')) ||
-      (state === LetterState.incorrect &&
+      cellModel.state === LetterState.correct ||
+      (cellModel.state === LetterState.present &&
+        !keyboardClasses.includes('correct')) ||
+      (cellModel.state === LetterState.incorrect &&
         !keyboardClasses.includes('correct') &&
         !keyboardClasses.includes('present'))
     ) {
       keyboardClasses.forEach((state) => {
-        this.keyboard.removeButtonTheme(key, state);
+        this.keyboard.removeButtonTheme(cellModel.value, state);
       });
-      this.keyboard.addButtonTheme(key, state);
+      this.keyboard.addButtonTheme(cellModel.value, cellModel.state);
     }
   }
 }

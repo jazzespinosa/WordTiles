@@ -1,0 +1,303 @@
+<div class="main-container">
+  <section class="stats-section">
+    <div class="header-stats">
+      <h1>Player Stats</h1>
+    </div>
+    <div class="container p-0">
+      <div class="row g-4 justify-content-center">
+        <!-- Column 1: Playtime Record -->
+        <div class="col-12 col-lg-3">
+          <div class="stats-group">
+            <h2>Play Record</h2>
+            <div class="stats-grid playtime-record">
+              <div class="stat-card">
+                <div class="stat-value">{{ stats?.gamesPlayed ?? "0" }}</div>
+                <div class="stat-label">Games Played</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">
+                  {{ (stats?.winPercentage | number: "1.0-2") ?? "0" }}%
+                </div>
+                <div class="stat-label">Win Rate</div>
+              </div>
+              <div class="stat-card">
+                <div class="win-loss-container">
+                  <div class="win-container">
+                    <div class="stat-value">
+                      {{ stats?.gamesWon ?? "0" }}
+                    </div>
+                    <div class="stat-label">Wins</div>
+                  </div>
+                  <div class="vertical-line"></div>
+                  <div class="loss-container">
+                    <div class="stat-value">
+                      {{ stats?.gamesLost ?? "0" }}
+                    </div>
+                    <div class="stat-label">Losses</div>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">
+                  {{ (stats?.averageTurnsToWin | number: "1.0-2") ?? "0" }}
+                </div>
+                <div class="stat-label">Turn Average Per Win</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Record Highs & Fastest Solves -->
+        <div class="col-12 col-lg-3 d-flex flex-column gap-4">
+          <div class="stats-group">
+            <h2>Streaks</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">{{ stats?.currentStreak ?? "0" }}</div>
+                <div class="stat-label">Current Streak</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">{{ stats?.longestStreak ?? "0" }}</div>
+                <div class="stat-label">Longest Streak</div>
+              </div>
+            </div>
+          </div>
+          <div class="stats-group">
+            <h2>Fastest Solves</h2>
+            <div class="stats-grid">
+              <div class="stat-card fastest-solves">
+                <div class="stat-value">
+                  <div class="title">{{ fastestWinByTime }}</div>
+                  <div class="word-value">
+                    {{ stats?.fastestWinByTime?.word ?? "-" }}
+                  </div>
+                </div>
+                <div class="stat-label">Fastest Win by Time</div>
+              </div>
+              <div class="stat-card fastest-solves">
+                <div class="stat-value">
+                  <div class="title">
+                    {{ stats?.fastestWinByTurns?.turnsTaken ?? "-" }}
+                  </div>
+                  <div class="word-value">
+                    {{ stats?.fastestWinByTurns?.word ?? "-" }}
+                  </div>
+                </div>
+                <div class="stat-label">Fastest Win by Turns</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 3: Charts -->
+        <div class="col-12 col-lg-6">
+          <div class="row g-4">
+            <div class="col-12 col-md-6">
+              <div class="pie-chart">
+                <h2>Most Played Length Difficulty</h2>
+                <canvas
+                  baseChart
+                  [data]="wordLengthDataset"
+                  [options]="pieChartOptions"
+                  [plugins]="pieChartPlugins"
+                  [type]="'pie'"
+                  [legend]="true"
+                >
+                </canvas>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="pie-chart">
+                <h2>Most Played Turn Difficulty</h2>
+                <canvas
+                  baseChart
+                  [data]="maxTurnsDataset"
+                  [options]="pieChartOptions"
+                  [plugins]="pieChartPlugins"
+                  [type]="'pie'"
+                  [legend]="true"
+                >
+                </canvas>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="flip-card" [class.flipped]="flipToggle">
+                <div class="flip-card-inner">
+                  <div class="flip-card-front bar-chart">
+                    <button class="flip-button" (click)="toggleFlip()">
+                      <i class="bi bi-arrow-repeat"></i>
+                    </button>
+                    <h2>TURN SOLVED AVE. / LENGTH</h2>
+                    <canvas
+                      baseChart
+                      [data]="winsByTurnDataset"
+                      [options]="barChartOptions"
+                      [plugins]="barChartPlugins"
+                      [type]="'bar'"
+                      [legend]="true"
+                    >
+                    </canvas>
+                  </div>
+                  <div class="flip-card-back bar-chart">
+                    <button class="flip-button" (click)="toggleFlip()">
+                      <i class="bi bi-arrow-repeat"></i>
+                    </button>
+                    <h2>Most Used Words</h2>
+                    <canvas
+                      baseChart
+                      [data]="mostUsedWordsDataset"
+                      [options]="barChartOptions"
+                      [type]="'bar'"
+                      [legend]="false"
+                    >
+                    </canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game History -->
+  <section class="history-section">
+    <div class="header-history">
+      <h1>Game History</h1>
+      <p class="subtitle">The Record of Every Solved Mystery</p>
+    </div>
+    <div class="toggle-container">
+      <p class="toggle-label">Table View</p>
+      <mat-slide-toggle
+        color="primary"
+        [checked]="viewToggle"
+        (change)="toggleTableView()"
+      ></mat-slide-toggle>
+    </div>
+    <cdk-virtual-scroll-viewport
+      itemSize="50"
+      (scrolledIndexChange)="nextBatch($event)"
+      class="history-viewport"
+    >
+      <div
+        *cdkVirtualFor="let game of history"
+        class="accordion"
+        id="statsAccordion"
+      >
+        <!-- @for (game of history; track game.gameId) { -->
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button
+              class="accordion-button"
+              [class.collapsed]="expandedGameId !== game.gameId"
+              type="button"
+              (click)="viewGameDetails(game.gameId)"
+            >
+              <div class="header-content">
+                <span class="date">{{
+                  game.date | date: "MMM d, y, h:mm a"
+                }}</span>
+                <span class="word">{{ game.word }}</span>
+                <span class="badge" [ngClass]="game.result">{{
+                  game.result
+                }}</span>
+                <span class="turns"
+                  >Turns: {{ game.turnsSolved }}/{{ game.maxTurns }}</span
+                >
+              </div>
+            </button>
+          </h2>
+          <div
+            class="accordion-collapse collapse"
+            [class.show]="expandedGameId === game.gameId"
+          >
+            <div class="accordion-body">
+              @if (loadingDetails[game.gameId]) {
+                <div class="text-center p-3">Loading details...</div>
+              } @else if (gameDetails[game.gameId]) {
+                @if (gameDetails[game.gameId].guesses.length > 0) {
+                  @if (!viewToggle) {
+                    <div class="guesses-container">
+                      @for (
+                        guess of gameDetails[game.gameId].guesses;
+                        track $index
+                      ) {
+                        <div class="guess-row">
+                          @for (
+                            char of guess.guess.split("");
+                            track $index;
+                            let i = $index
+                          ) {
+                            <div
+                              class="letter-card"
+                              [ngClass]="getLetterClass(guess.letterStates[i])"
+                            >
+                              {{ char }}
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="guesses-container-simple">
+                      <table class="guesses-table">
+                        <thead>
+                          <tr>
+                            <th>TURN</th>
+                            <th>GUESS</th>
+                          </tr>
+                        </thead>
+                        @for (
+                          guess of gameDetails[game.gameId].guesses;
+                          track $index;
+                          let i = $index
+                        ) {
+                          <tbody>
+                            <tr>
+                              <td>{{ i + 1 }}</td>
+                              <td>
+                                @for (
+                                  letter of guess.guess.split("");
+                                  track $index;
+                                  let f = $index
+                                ) {
+                                  <span
+                                    class="letter-table word"
+                                    [ngClass]="
+                                      getLetterClass(guess.letterStates[f])
+                                    "
+                                    >{{ letter }}</span
+                                  >
+                                }
+                              </td>
+                            </tr>
+                          </tbody>
+                        }
+                      </table>
+                    </div>
+                  }
+                } @else {
+                  <div class="text-center p-3">No guesses found.</div>
+                }
+              } @else {
+                <div class="text-center p-3">Details not available.</div>
+              }
+            </div>
+          </div>
+        </div>
+        <!-- } -->
+      </div>
+      <!-- <div *ngIf="!theEnd" class="spinner">Loading...</div> -->
+      @if (!theEnd) {
+        <div class="spinner">
+          <div
+            class="spinner-border spinner-border-sm text-light m-2"
+            role="status"
+          ></div>
+          <span>Loading...</span>
+        </div>
+      }
+    </cdk-virtual-scroll-viewport>
+  </section>
+</div>

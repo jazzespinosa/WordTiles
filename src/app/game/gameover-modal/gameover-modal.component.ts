@@ -20,18 +20,20 @@ export class GameoverModalComponent implements OnInit {
   constructor(private gameService: GameService) {}
 
   ngOnInit(): void {
-    this.isGameOver = this.gameService.gameState$.pipe(
+    this.isGameOver = this.gameService.globalGameStatus$.pipe(
       map((value) => ({
-        isOver: value === GameState.win || value === GameState.lose,
-        isWin: value === GameState.win,
+        isOver:
+          value.gameState === GameState.win ||
+          value.gameState === GameState.lose,
+        isWin: value.gameState === GameState.win,
       })),
       tap(() => {
         if (GameState.win || GameState.lose) {
-          this.answer = this.gameService.getAnswer();
+          this.answer = this.gameService.getGuessResponse()?.answer ?? '';
           this.answerLink =
             'https://www.google.com/search?q=define:' + this.answer;
         }
-      })
+      }),
     );
   }
 

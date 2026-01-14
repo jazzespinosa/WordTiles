@@ -1,46 +1,63 @@
 @if (isModalOpen | async) {
-<div>
   <app-modal></app-modal>
-</div>
-} @if ((isGameOverModalOpen | async)){
-<div>
+}
+@if (isGameOverModalOpen | async) {
   <app-gameover-modal></app-gameover-modal>
-</div>
+}
+@if (isLoading) {
+  <div style="text-align: center">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
 }
 <div>
-  <div>
-    <div class="row justify-content-center main-container no-gutters">
+  <div class="row justify-content-center main-container no-gutters">
+    @if (isLoading) {
+      <div style="margin-top: 20rem; margin-bottom: 10rem">
+        <h3>Loading...</h3>
+      </div>
+    } @else {
       <div class="col-md-auto">
-        @for (item of [].constructor((gameConfig | async)!.maxTurns); track
-        $index; let turnIndex = $index) {
-        <div
-          class="row row-container justify-content-center no-gutters flex-nowrap"
-        >
-          @for (item of [].constructor((gameConfig | async)!.wordLength); track
-          $index; let letterIndex = $index) {
-          <div class="col-auto cell-container">
-            <app-letter-container
-              [turnIndex]="turnIndex"
-              [letterIndex]="letterIndex"
-            ></app-letter-container>
+        @for (
+          item of [].constructor(gameConfig.maxTurns);
+          track $index;
+          let turnIndex = $index
+        ) {
+          <div
+            class="row row-container justify-content-center no-gutters flex-nowrap"
+          >
+            @for (
+              item of [].constructor(gameConfig.wordLength);
+              track $index;
+              let letterIndex = $index
+            ) {
+              <div class="col-auto cell-container">
+                <app-letter-container
+                  [turnIndex]="turnIndex"
+                  [letterIndex]="letterIndex"
+                ></app-letter-container>
+              </div>
+            }
           </div>
-          }
-        </div>
         }
       </div>
-    </div>
-    @if ((isGameOver | async)!.isOver && !(isGameOverModalOpen | async)) {
-    <div style="text-align: center">
-      <p>
-        You
+    }
+  </div>
+  @if ((isGameOver | async)!.isOver && !(isGameOverModalOpen | async)) {
+    <div class="d-flex flex-column align-items-center text-center">
+      <p class="mb-0">
+        You've
         {{ (this.isGameOver | async)!.isWin ? "guessed" : "failed to guess" }}
         the word {{ answer }}. Check its meaning
         <a [href]="answerLink" target="_blank">here</a>.
+        <br />
+        Wanna play again? Click the button below.
       </p>
+      <button class="btn btn-success btn-sm" (click)="onPlayAgainModal()">
+        Play Again
+      </button>
     </div>
-    }
-  </div>
-  <div class="keyboard-container">
-    <app-keyboard></app-keyboard>
-  </div>
+  }
+</div>
+<div class="keyboard-container">
+  <app-keyboard></app-keyboard>
 </div>

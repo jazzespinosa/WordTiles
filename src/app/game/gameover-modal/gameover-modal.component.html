@@ -10,10 +10,8 @@
           {{ (this.isGameOver | async)!.isWin ? "YOU WIN!" : "YOU FAILED!" }}
         </h3>
         <p>
-          You
-          {{
-            (this.isGameOver | async)!.isWin ? "guessed" : "failed to guess"
-          }}
+          You've
+          {{ (this.isGameOver | async)!.isWin ? "guessed" : "failed to guess" }}
           the word {{ answer }}. Check its meaning
           <a [href]="answerLink" target="_blank">here</a>.
         </p>

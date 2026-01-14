@@ -2,7 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { from, switchMap } from 'rxjs';
 import { auth } from '../../../environment/firebase.config';
 
-const SKIP_URLS = ['api/user/signup', 'api/user/login'];
+const SKIP_URLS = ['api/user/signup', 'api/user/login', 'api/util/online'];
 
 export const AuthInterceptorService: HttpInterceptorFn = (req, next) => {
   // Skip interceptor for auth endpoints
@@ -20,13 +20,16 @@ export const AuthInterceptorService: HttpInterceptorFn = (req, next) => {
       const user = auth.currentUser;
 
       if (!user) {
+        console.log('AuthInterceptorService - no user');
         return next(req);
       }
 
       return from(user.getIdToken()).pipe(
         switchMap((token) => {
           const cloned = req.clone({
-            setHeaders: { Authorization: `Bearer ${token}` },
+            setHeaders: {
+              Authorization: `Bearer ${token}`,
+            },
           });
           return next(cloned);
         }),
