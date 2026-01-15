@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "wordtiles1"
+  },
+  "targets": {},
+  "etags": {
+    "wordtiles1": {
+      "extensionInstances": {
+        "firestore-send-email": "5f4f032cd6a4cb1fce6bd15135ae5d3fdb08832b39cac083c2f1736c19a033b8"
+      }
+    }
   }
 }

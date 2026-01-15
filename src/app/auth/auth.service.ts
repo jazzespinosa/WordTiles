@@ -13,6 +13,7 @@ import {
   GoogleAuthProvider,
   connectAuthEmulator,
   signInAnonymously,
+  browserPopupRedirectResolver,
 } from '@angular/fire/auth';
 import { environment } from '../../../environments/environment';
 import {
@@ -230,7 +231,13 @@ export class AuthService {
   loginWithGoogle(): Observable<void> {
     return this.signOutIfNeeded().pipe(
       switchMap(() =>
-        from(signInWithRedirect(this.auth, new GoogleAuthProvider())),
+        from(
+          signInWithRedirect(
+            this.auth,
+            new GoogleAuthProvider(),
+            browserPopupRedirectResolver,
+          ),
+        ),
       ),
     );
   }

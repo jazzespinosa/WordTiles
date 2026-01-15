@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "dist/wordtiles",
+    "public": "dist\\wordtiles\\browser",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -9,7 +9,7 @@
     "rewrites": [
       {
         "source": "**",
-        "destination": "/index.csr.html"
+        "destination": "/index.html"
       }
     ]
   },
