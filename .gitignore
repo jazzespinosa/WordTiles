@@ -41,8 +41,10 @@ testem.log
 .DS_Store
 Thumbs.db
 
-/environments
-environment.ts
+# Environment files
+environments/environment.ts
+environments/firebase.config.ts
+
 .fake
 # Firebase
 .firebase

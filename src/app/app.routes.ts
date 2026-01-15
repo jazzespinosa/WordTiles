@@ -19,6 +19,5 @@ export const routes: Routes = [
   { path: 'how-to-play', component: HowToPlayComponent },
   { path: 'feedback', component: FeedbackComponent, canActivate: [authGuard] },
   { path: 'auth', component: AuthComponent, canActivate: [loginGuard] },
-  // { path: 'test', component: TestpageComponent },
   { path: '**', redirectTo: 'home', pathMatch: 'full' }, // create a 404 page
 ];
