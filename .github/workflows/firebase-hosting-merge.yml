@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "${{ secrets.ENV_FIREBASE_CONFIG }}" > src/environments/firebase.config.ts
-      - run: echo "${{ secrets.ENV_BACKEND_URL }}" > src/environments/environment.ts
+      - run: echo "${{ secrets.ENV_FIREBASE_CONFIG }}" > environments/firebase.config.ts
+      - run: echo "${{ secrets.ENV_BACKEND_URL }}" > environments/environment.ts
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
