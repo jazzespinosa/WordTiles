@@ -1,7 +1,6 @@
 <div class="list-group">
   <a
-    class="list-group-item list-group-item-action active"
-    routerLinkActive="active-button"
+    class="list-group-item list-group-item-action"
     [ngClass]="activeLink === '/home' ? 'active' : ''"
     routerLink="/home"
     (click)="closeSideNav()"
@@ -12,7 +11,6 @@
   <a
     class="list-group-item list-group-item-action"
     [ngClass]="activeLink === '/play' ? 'active' : ''"
-    routerLinkActive="active"
     routerLink="/play"
     (click)="closeSideNav()"
   >
@@ -22,7 +20,6 @@
   <a
     class="list-group-item list-group-item-action"
     [ngClass]="activeLink === '/stats' ? 'active' : ''"
-    routerLinkActive="active"
     routerLink="/stats"
     (click)="closeSideNav()"
   >
@@ -33,7 +30,6 @@
   <a
     class="list-group-item list-group-item-action"
     [ngClass]="activeLink === '/how-to-play' ? 'active' : ''"
-    routerLinkActive="active"
     routerLink="/how-to-play"
     (click)="closeSideNav()"
     ><span class="material-symbols-rounded"> help </span> HOW TO PLAY
@@ -41,7 +37,6 @@
   <a
     class="list-group-item list-group-item-action"
     [ngClass]="activeLink === '/about' ? 'active' : ''"
-    routerLinkActive="active"
     routerLink="/about"
     (click)="closeSideNav()"
     ><span class="material-symbols-rounded"> info </span> ABOUT
@@ -49,7 +44,6 @@
   <a
     class="list-group-item list-group-item-action"
     [ngClass]="activeLink === '/feedback' ? 'active' : ''"
-    routerLinkActive="active"
     routerLink="/feedback"
     (click)="closeSideNav()"
     ><span class="material-symbols-rounded"> feedback </span> FEEDBACK

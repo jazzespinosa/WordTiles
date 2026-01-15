@@ -1,8 +1,17 @@
+:host {
+  font-family: "Inter", sans-serif;
+}
+
+.active {
+  background-color: #283878;
+  color: rgb(255, 255, 255) !important;
+}
+
 .list-group {
   --bs-list-group-bg: none;
   --bs-list-group-border-color: none;
   --bs-list-group-border-radius: none;
-  --bs-list-group-action-hover-bg: #cf9fff;
+  --bs-list-group-action-hover-bg: #9eb6f9;
 }
 
 .list-group-item.list-group-item-action {
@@ -10,4 +19,6 @@
   font-weight: bold;
   text-align: center;
   color: black;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }

@@ -19,25 +19,93 @@
 
 .modal-header,
 .modal-body {
-  padding: .5rem;
+  padding: 0.5rem;
 }
 
 .modal-body {
   text-align: center;
-
-  h3 {
-    font-size: 2rem;
-    font-weight: bolder;
-  }
 }
 
 .modal-footer {
-  padding: .5rem;
+  padding: 0.5rem;
 }
 
 .modal-title {
   font-size: 1.5rem;
   font-weight: bold;
+}
+
+.label-win {
+  font-family: "Luckiest Guy", sans-serif;
+  font-size: 2rem;
+  color: green;
+  display: inline-block;
+  animation: beatSync 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  transform-origin: center;
+}
+
+@keyframes beatSync {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2) translateY(-5px);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  75% {
+    transform: scale(1.1) translateY(-3px);
+  }
+}
+
+.label-failed {
+  font-family: "Special Elite", sans-serif;
+  font-size: 2rem;
+  color: red;
+  display: inline-block;
+  animation: bounceDrop 3s ease-in-out infinite;
+  transform-origin: top;
+}
+
+@keyframes bounceDrop {
+  0% {
+    transform: translateY(-60vh);
+    animation-timing-function: ease-in;
+  }
+  30% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  40% {
+    transform: translateY(-55px);
+    animation-timing-function: ease-in;
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  55% {
+    transform: translateY(-28px);
+    animation-timing-function: ease-in;
+  }
+  65% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  70% {
+    transform: translateY(-8px);
+    animation-timing-function: ease-in;
+  }
+  75% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
 }
 
 .btn.btn-primary {

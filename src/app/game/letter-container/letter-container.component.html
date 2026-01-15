@@ -12,7 +12,10 @@
         <h3>&nbsp;</h3>
       }
     </div>
-    <div class="body flip-card-back default">
+    <div
+      class="body flip-card-back default"
+      [ngClass]="[(isGameOver | async) ? 'disabled' : '']"
+    >
       <h3>{{ cellValue }}</h3>
     </div>
   </div>

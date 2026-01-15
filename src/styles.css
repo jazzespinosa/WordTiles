@@ -1,20 +1,9 @@
 @import "../node_modules/@angular/material/prebuilt-themes/azure-blue.css";
-@import url("https://fonts.googleapis.com/css2?family=Bakbak+One&display=swap");
-/* @import "../node_modules/@angular/material/prebuilt-themes/indigo-pink.css"; */
+@import url("https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Luckiest+Guy&family=Special+Elite&display=swap");
 
 .mat-drawer-backdrop {
   background-color: rgba(0, 0, 0, 0.6) !important;
 }
-
-/* .mat-drawer-backdrop.mat-drawer-shown {
-  opacity: 1 !important;
-}  */
-
-/* You can add global styles to this file, and also import other style files */
-
-/* .mat-drawer-container {
-  --mat-sidenav-backdrop-transition-duration: 0ms;
-} */
 
 .mat-drawer-backdrop.mat-drawer-shown {
   opacity: 1;

@@ -12,7 +12,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 2rem;
   position: relative;
   z-index: 1;
 }
@@ -185,4 +185,22 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+.contact-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contact-links a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.contact-links a:hover {
+  transform: scale(1.2);
 }

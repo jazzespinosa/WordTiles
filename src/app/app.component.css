@@ -1,6 +1,7 @@
 mat-sidenav {
   height: calc(100vh - 4rem);
-  width: 15rem;
+  width: 65%;
+  max-width: 20rem;
   float: left;
   /* position: relative; */
   padding-top: 1rem;
@@ -9,7 +10,7 @@ mat-sidenav {
 
 mat-sidenav-content {
   overflow-x: hidden;
-  background-color: #f1f1f1;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
 
 mat-sidenav-container {

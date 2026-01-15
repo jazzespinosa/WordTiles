@@ -16,6 +16,15 @@
   z-index: 60;
   display: block;
   width: fit-content;
+  max-width: 90%;
+}
+
+.modal-content {
+  background-color: rgb(255, 255, 255);
+}
+
+.modal-header {
+  margin-inline: 8.5rem;
 }
 
 .modal-header,
@@ -67,15 +76,16 @@
   height: 2.7rem;
   position: relative;
   z-index: 2;
+  border: 1px solid lightgray;
 }
 
 .btn.btn-primary {
-  margin-inline: 6rem;
+  /* margin-inline: 6rem; */
 }
 
 .btn:disabled {
   background-color: gray;
-  border-color: gray;
+  border-color: lightgray;
   opacity: 0.8;
 }
 
@@ -91,7 +101,7 @@
   padding-bottom: 1.5rem;
   padding-inline: 2rem;
   margin-inline: 3rem;
-  background-color: rgb(180, 253, 213);
+  background-color: #dae8f5;
   border: 1px solid #4b4b4f;
 }
 

@@ -151,7 +151,7 @@
   color: #fff;
   font-size: 1rem;
   font-family: inherit;
-  transition: all 0.2s ease;
+  /* transition: all 0.2s ease; */
   box-sizing: border-box;
 }
 
@@ -169,7 +169,7 @@
   resize: vertical;
   min-height: 120px;
   field-sizing: content;
-  transition: height 0.3s ease-in-out;
+  /* transition: height 0.3s ease-in-out; */
 }
 
 .char-count {

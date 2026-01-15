@@ -10,7 +10,7 @@ import {
   FeedbackDto,
 } from './feedback.model';
 import { addDoc, collection, Firestore } from 'firebase/firestore';
-import { app, db } from '../../../environment/firebase.config';
+import { app, db } from '../../../environments/firebase.config';
 
 @Component({
   selector: 'app-feedback',

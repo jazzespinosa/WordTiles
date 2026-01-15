@@ -25,7 +25,7 @@ import {
   StatsModel,
 } from './game.model';
 import { HttpClient } from '@angular/common/http';
-import { Environment } from '../../../environment/environment';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
@@ -34,8 +34,7 @@ export class GameService {
   private readonly INITIAL_WORD_LENGTH = 5;
   private readonly INITIAL_MAX_TURNS = 6;
 
-  private readonly environment = new Environment();
-  private baseUrl = this.environment.getApiUrl();
+  private readonly baseUrl = environment.backendUrl;
 
   // ========== isGameModalOpen ==========
   private readonly isGameModalOpen = new BehaviorSubject<boolean>(false);

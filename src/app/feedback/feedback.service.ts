@@ -2,14 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { FeedbackDto, FeedbackResponse } from './feedback.model';
-import { Environment } from '../../../environment/environment';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FeedbackService {
-  private readonly environment = new Environment();
-  private baseUrl = this.environment.getApiUrl();
+  private readonly baseUrl = environment.backendUrl;
 
   constructor(private http: HttpClient) {}
 

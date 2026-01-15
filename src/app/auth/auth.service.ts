@@ -14,7 +14,7 @@ import {
   connectAuthEmulator,
   signInAnonymously,
 } from '@angular/fire/auth';
-import { Environment } from '../../../environment/environment';
+import { environment } from '../../../environments/environment';
 import {
   BehaviorSubject,
   from,
@@ -39,24 +39,13 @@ import { isPlatformBrowser } from '@angular/common';
 export class AuthService {
   private platformId = inject(PLATFORM_ID);
 
-  private readonly environment = new Environment();
-  private baseUrl = this.environment.getApiUrl();
+  private readonly baseUrl = environment.backendUrl;
 
   constructor(
     private auth: Auth,
     private http: HttpClient,
     private destroyRef: DestroyRef,
-  ) {
-    // if (
-    //   isPlatformBrowser(this.platformId) &&
-    //   window.location.hostname !== 'localhost'
-    // ) {
-    //   // connectAuthEmulator(this.auth, 'http://localhost:9099');
-    //   connectAuthEmulator(this.auth, 'http://127.0.0.1:9099');
-    // }
-  }
-
-  // private tokenExpiration!: any; // check if needed
+  ) {}
 
   // ========== isLoading ==========
   private readonly isLoading = new BehaviorSubject<boolean>(false);

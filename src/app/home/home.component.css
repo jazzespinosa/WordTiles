@@ -63,10 +63,10 @@
 }
 
 .highlight {
-  background: linear-gradient(45deg, #ff6b6b, #feca57);
+  background: linear-gradient(135deg, #ff6b6b, #feca57);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-left: 0.5rem;
+  /* margin-left: 0.5rem; */
 }
 
 .subtitle {
@@ -188,7 +188,7 @@
 }
 
 .view-all-link {
-  color: #fff;
+  color: #a0a0bd;
   cursor: pointer;
 }
 

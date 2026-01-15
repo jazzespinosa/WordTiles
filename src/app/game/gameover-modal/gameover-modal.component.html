@@ -6,14 +6,18 @@
         <h5 class="modal-title">GAME OVER</h5>
       </div>
       <div class="modal-body">
-        <h3>
-          {{ (this.isGameOver | async)!.isWin ? "YOU WIN!" : "YOU FAILED!" }}
-        </h3>
+        <!-- {{ (this.isGameOver | async)!.isWin ? "YOU WIN!" : "YOU FAILED!" }} -->
+        @if ((isGameOver | async)!.isWin) {
+          <h2 class="label-win">YOU WIN!</h2>
+        } @else {
+          <h2 class="label-failed">YOU FAILED!</h2>
+        }
+
         <p>
           You've
           {{ (this.isGameOver | async)!.isWin ? "guessed" : "failed to guess" }}
-          the word {{ answer }}. Check its meaning
-          <a [href]="answerLink" target="_blank">here</a>.
+          the word <strong>{{ answer }}</strong
+          >. Check its meaning <a [href]="answerLink" target="_blank">here</a>.
         </p>
       </div>
       <div class="modal-footer justify-content-center">

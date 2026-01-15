@@ -41,7 +41,7 @@ testem.log
 .DS_Store
 Thumbs.db
 
-/environment
+/environments
 environment.ts
 .fake
 # Firebase
@@ -50,3 +50,5 @@ environment.ts
 .runtimeconfig.json
 
 /src/app/testpage
+
+C:/Users/Jazz/source/repos/WordTiles/src/app/testpage

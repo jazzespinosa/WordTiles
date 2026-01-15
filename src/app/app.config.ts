@@ -21,7 +21,7 @@ import { AuthInterceptorService } from './auth/auth-interceptor.service';
 import { AuthService } from './auth/auth.service';
 import { isPlatformBrowser } from '@angular/common';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { app, auth } from '../../environment/firebase.config';
+import { app, auth } from '../../environments/firebase.config';
 
 export const appConfig: ApplicationConfig = {
   providers: [

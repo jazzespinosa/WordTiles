@@ -6,11 +6,6 @@ import { catchError, throwError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GameState } from '../game.model';
 
-type ErrorType = {
-  errorName: string;
-  errorMessage: string;
-};
-
 @Component({
   selector: 'app-modal',
   standalone: true,

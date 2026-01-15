@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { from, switchMap } from 'rxjs';
-import { auth } from '../../../environment/firebase.config';
+import { auth } from '../../../environments/firebase.config';
 
 const SKIP_URLS = ['api/user/signup', 'api/user/login', 'api/util/online'];
 
