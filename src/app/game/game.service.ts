@@ -108,7 +108,15 @@ export class GameService {
     this.isGuessValid.next(value);
   }
 
+  // ========== isGuessLoading ==========
+  private readonly isGuessLoading = new BehaviorSubject<boolean>(false);
+  readonly isGuessLoading$ = this.isGuessLoading.asObservable();
+  setIsGuessLoading(value: boolean) {
+    this.isGuessLoading.next(value);
+  }
+
   resetGame() {
+    this.setIsGuessLoading(false);
     this.setGlobalGameStatus({
       gameState: GameState.default,
       gameId: 0,
@@ -126,6 +134,7 @@ export class GameService {
   }
 
   onEnterValue(enteredValue: string): Observable<GuessPostResponseDto> {
+    this.setIsGuessLoading(true);
     return this.http
       .get<GetCurrentGameDto>(`${this.baseUrl}/api/Game/get-game`) //REDUCE API CALL. LET BACKEND HANDLE VALIDATION OF GAMEID
       .pipe(
@@ -185,6 +194,7 @@ export class GameService {
       currentTurn: prevTurn + 1,
     });
     this.setTempTurnValue('');
+    this.setIsGuessLoading(false);
 
     for (const cellValue of cellValues) {
       if (cellValue.state !== LetterState.correct) {

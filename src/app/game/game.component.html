@@ -4,14 +4,19 @@
 @if (isGameOverModalOpen | async) {
   <app-gameover-modal></app-gameover-modal>
 }
-@if (isLoading) {
+@if (isGameLoading) {
   <div style="text-align: center">
     <app-loading-spinner></app-loading-spinner>
   </div>
 }
 <div>
+  @if (isGuessLoading | async) {
+    <div style="text-align: center">
+      <app-guess-loading-spinner></app-guess-loading-spinner>
+    </div>
+  }
   <div class="row main-container no-gutters">
-    @if (isLoading) {
+    @if (isGameLoading) {
       <div style="margin-top: 20rem; margin-bottom: 10rem">
         <h3>Loading...</h3>
       </div>

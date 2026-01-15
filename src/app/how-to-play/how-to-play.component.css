@@ -12,7 +12,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 2rem;
   position: relative;
   z-index: 1;
 }
@@ -20,14 +20,14 @@
 /* Hero */
 .hero {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 2rem;
 }
 
 .hero h1 {
   font-size: 3rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
-  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(45deg, #ff6b6b, #feca57);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -343,7 +343,11 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
+  :host {
+    padding: 1rem;
+  }
+
   .hero h1 {
     font-size: 2.2rem;
   }

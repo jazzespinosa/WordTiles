@@ -165,6 +165,7 @@ export class KeyboardComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (value) => {
             this.gameService.setIsGuessValid(true);
+            this.gameService.setIsGuessLoading(false);
             this.inputValue = '';
           },
           error: (err) => {
@@ -174,6 +175,7 @@ export class KeyboardComponent implements OnInit, OnDestroy {
                 'Guess word length does not match the game word length.'
             ) {
               this.gameService.setIsGuessValid(false);
+              this.gameService.setIsGuessLoading(false);
             }
           },
         });

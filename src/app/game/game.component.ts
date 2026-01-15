@@ -10,6 +10,7 @@ import { ModalComponent } from './modal/modal.component';
 import { CommonModule } from '@angular/common';
 import { GameoverModalComponent } from './gameover-modal/gameover-modal.component';
 import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
+import { GuessLoadingSpinnerComponent } from '../shared/guess-loading-spinner/guess-loading-spinner.component';
 
 @Component({
   selector: 'app-game',
@@ -22,6 +23,7 @@ import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinn
     GameoverModalComponent,
     CommonModule,
     LoadingSpinnerComponent,
+    GuessLoadingSpinnerComponent,
   ],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css',
@@ -36,7 +38,8 @@ export class GameComponent implements OnInit, OnDestroy {
   isGameOver!: Observable<{ isOver: boolean; isWin: boolean }>;
   answer = '';
   answerLink = 'https://www.google.com/search?q=define:' + this.answer;
-  isLoading = false;
+  isGameLoading = false;
+  isGuessLoading!: Observable<boolean>;
 
   constructor(
     private gameService: GameService,
@@ -44,7 +47,8 @@ export class GameComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.isLoading = true;
+    this.isGameLoading = true;
+    this.isGuessLoading = this.gameService.isGuessLoading$;
 
     this.gameService.resetGame();
     this.gameService.setIsGameModalOpen(true);
@@ -65,10 +69,10 @@ export class GameComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.isLoading = false;
+          this.isGameLoading = false;
         },
         error: () => {
-          this.isLoading = false;
+          this.isGameLoading = false;
         },
       });
 

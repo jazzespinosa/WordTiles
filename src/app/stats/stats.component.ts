@@ -299,7 +299,7 @@ export class StatsComponent implements OnInit {
   formatTimeSpan(date: string): string {
     const [hours, minutes, seconds] = date.split(':').map(Number);
     let roundedSeconds = seconds.toFixed(2);
-    let duration = `${hours ? hours + 'h' : ''}${minutes ? minutes + 'm' : ''}${seconds ? roundedSeconds + 's' : ''}`;
+    let duration = `${hours ? hours + 'h ' : ''}${minutes ? minutes + 'm ' : ''}${seconds ? roundedSeconds + 's' : ''}`;
     return duration;
   }
 
@@ -324,7 +324,7 @@ export class StatsComponent implements OnInit {
     this.gameService
       .getFullHistory(this.currentPage, 20)
       .subscribe((newItems) => {
-        if (newItems.length === 0) this.theEnd = true;
+        if (newItems.length === 0 || newItems.length < 20) this.theEnd = true;
         this.history = [...this.history, ...newItems];
       });
   }

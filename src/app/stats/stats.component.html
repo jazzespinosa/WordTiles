@@ -1,14 +1,15 @@
 <div class="main-container">
   <section class="stats-section">
-    <div class="header-stats">
+    <div class="header">
       <h1>Player Stats</h1>
+      <p class="subtitle">Proof That You’re a Certified Genius!</p>
     </div>
     <div class="container p-0">
       <div class="row g-4 justify-content-center">
         <!-- Column 1: Playtime Record -->
         <div class="col-12 col-lg-3">
           <div class="stats-group">
-            <h2>Play Record</h2>
+            <h2 class="card-title">PLAY RECORD</h2>
             <div class="stats-grid playtime-record">
               <div class="stat-card">
                 <div class="stat-value">{{ stats?.gamesPlayed ?? "0" }}</div>
@@ -50,7 +51,7 @@
         <!-- Column 2: Record Highs & Fastest Solves -->
         <div class="col-12 col-lg-3 d-flex flex-column gap-4">
           <div class="stats-group">
-            <h2>Streaks</h2>
+            <h2 class="card-title">STREAKS</h2>
             <div class="stats-grid">
               <div class="stat-card">
                 <div class="stat-value">{{ stats?.currentStreak ?? "0" }}</div>
@@ -63,7 +64,7 @@
             </div>
           </div>
           <div class="stats-group">
-            <h2>Fastest Solves</h2>
+            <h2 class="card-title">FASTEST SOLVES</h2>
             <div class="stats-grid">
               <div class="stat-card fastest-solves">
                 <div class="stat-value">
@@ -94,30 +95,38 @@
           <div class="row g-4">
             <div class="col-12 col-md-6">
               <div class="pie-chart">
-                <h2>Most Played Length Difficulty</h2>
-                <canvas
-                  baseChart
-                  [data]="wordLengthDataset"
-                  [options]="pieChartOptions"
-                  [plugins]="pieChartPlugins"
-                  [type]="'pie'"
-                  [legend]="true"
-                >
-                </canvas>
+                <h2 class="graph-title">Most Played Length Difficulty</h2>
+                @if (wordLengthDataset.datasets[0].data.length > 0) {
+                  <canvas
+                    baseChart
+                    [data]="wordLengthDataset"
+                    [options]="pieChartOptions"
+                    [plugins]="pieChartPlugins"
+                    [type]="'pie'"
+                    [legend]="true"
+                  >
+                  </canvas>
+                } @else {
+                  <div class="no-data">No data available</div>
+                }
               </div>
             </div>
             <div class="col-12 col-md-6">
               <div class="pie-chart">
-                <h2>Most Played Turn Difficulty</h2>
-                <canvas
-                  baseChart
-                  [data]="maxTurnsDataset"
-                  [options]="pieChartOptions"
-                  [plugins]="pieChartPlugins"
-                  [type]="'pie'"
-                  [legend]="true"
-                >
-                </canvas>
+                <h2 class="graph-title">Most Played Turn Difficulty</h2>
+                @if (maxTurnsDataset.datasets[0].data.length > 0) {
+                  <canvas
+                    baseChart
+                    [data]="maxTurnsDataset"
+                    [options]="pieChartOptions"
+                    [plugins]="pieChartPlugins"
+                    [type]="'pie'"
+                    [legend]="true"
+                  >
+                  </canvas>
+                } @else {
+                  <div class="no-data">No data available</div>
+                }
               </div>
             </div>
             <div class="col-12">
@@ -127,7 +136,7 @@
                     <button class="flip-button" (click)="toggleFlip()">
                       <i class="bi bi-arrow-repeat"></i>
                     </button>
-                    <h2>TURN SOLVED AVE. / LENGTH</h2>
+                    <h2 class="graph-title">Solves Distribution</h2>
                     <canvas
                       baseChart
                       [data]="winsByTurnDataset"
@@ -142,15 +151,19 @@
                     <button class="flip-button" (click)="toggleFlip()">
                       <i class="bi bi-arrow-repeat"></i>
                     </button>
-                    <h2>Most Used Words</h2>
-                    <canvas
-                      baseChart
-                      [data]="mostUsedWordsDataset"
-                      [options]="barChartOptions"
-                      [type]="'bar'"
-                      [legend]="false"
-                    >
-                    </canvas>
+                    <h2 class="graph-title">Most Used Words</h2>
+                    @if (mostUsedWordsDataset.datasets[0].data.length > 0) {
+                      <canvas
+                        baseChart
+                        [data]="mostUsedWordsDataset"
+                        [options]="barChartOptions"
+                        [type]="'bar'"
+                        [legend]="false"
+                      >
+                      </canvas>
+                    } @else {
+                      <div class="no-data">No data available</div>
+                    }
                   </div>
                 </div>
               </div>
@@ -163,7 +176,7 @@
 
   <!-- Game History -->
   <section class="history-section">
-    <div class="header-history">
+    <div class="header">
       <h1>Game History</h1>
       <p class="subtitle">The Record of Every Solved Mystery</p>
     </div>
@@ -291,10 +304,7 @@
       <!-- <div *ngIf="!theEnd" class="spinner">Loading...</div> -->
       @if (!theEnd) {
         <div class="spinner">
-          <div
-            class="spinner-border spinner-border-sm text-light m-2"
-            role="status"
-          ></div>
+          <div class="spinner-border spinner-border-sm text-light m-2"></div>
           <span>Loading...</span>
         </div>
       }

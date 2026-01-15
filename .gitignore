@@ -43,6 +43,7 @@ Thumbs.db
 
 # Environment files
 environments/environment.ts
+environments/environment.development.ts
 environments/firebase.config.ts
 
 .fake

@@ -1,0 +1,44 @@
+.backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+}
+
+.container {
+  position: absolute;
+  justify-content: center;
+  align-items: center;
+  z-index: 51;
+  display: flex;
+  justify-self: anchor-center;
+  top: 30%;
+}
+
+.loading::after {
+  content: "";
+  display: inline-block;
+  /* Animates content through 4 steps over 2 seconds */
+  animation: dot-cycle 1.5s steps(1) infinite;
+}
+
+@keyframes dot-cycle {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+  100% {
+    content: "";
+  }
+}

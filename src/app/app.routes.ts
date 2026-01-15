@@ -10,7 +10,6 @@ import { FeedbackComponent } from './feedback/feedback.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  // { path: '/', redirectTo: 'home', pathMatch: 'full' },
   { path: 'home', component: HomeComponent },
   { path: 'play', component: GameComponent, canActivate: [authGuard] },
   { path: 'stats', component: StatsComponent, canActivate: [authGuard] },

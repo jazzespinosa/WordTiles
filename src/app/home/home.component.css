@@ -266,6 +266,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  :host {
+    padding: 1rem;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
