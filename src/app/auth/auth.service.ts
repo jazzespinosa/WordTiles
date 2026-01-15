@@ -13,8 +13,8 @@ import {
   GoogleAuthProvider,
   connectAuthEmulator,
   signInAnonymously,
-  browserPopupRedirectResolver,
 } from '@angular/fire/auth';
+import { browserPopupRedirectResolver } from 'firebase/auth';
 import { environment } from '../../../environments/environment';
 import {
   BehaviorSubject,
@@ -235,7 +235,7 @@ export class AuthService {
           signInWithRedirect(
             this.auth,
             new GoogleAuthProvider(),
-            browserPopupRedirectResolver,
+            // browserPopupRedirectResolver,
           ),
         ),
       ),
